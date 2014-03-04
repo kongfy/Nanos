@@ -9,7 +9,6 @@ CFLAGS = -m32 -march=i386 -static -MD -std=gnu89 -ggdb \
 		 -Wall -Werror -O2 -I./include
 ASFLAGS = -m32 -MD
 LDFLAGS = -melf_i386
-GITFLAGS = -q --author='tracer <tracer@njuoslab.org>' --no-verify --allow-empty
 QEMU = qemu-system-i386
 
 # 编译目标：src目录下的所有.c和.S文件
@@ -20,8 +19,6 @@ OBJS = $(CFILES:.c=.o) $(SFILES:.S=.o)
 game.img: game
 	@cd boot; make
 	cat boot/bootblock game > game.img
-	-@git add . --ignore-errors &> /dev/null # KEEP IT
-	-@(echo "> compile" && uname -a && uptime && pstree -A) | git commit -F - $(GITFLAGS) # KEEP IT
 
 game: $(OBJS)
 	$(LD) $(LDFLAGS) -e game_init -Ttext 0x00100000 -o game $(OBJS)
@@ -31,7 +28,6 @@ game: $(OBJS)
 # 定义的一些伪目标
 .PHONY: play clean debug
 play: game.img
-	-@git commit -m "> play" $(GITFLAGS) # KEEP IT
 	$(QEMU) -enable-kvm game.img
 
 debug: game.img

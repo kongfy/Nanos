@@ -1,0 +1,12 @@
+*.[oad]
+*~
+~*
+*.swp
+*.bak
+*.backup
+*.img
+*.exe
+game
+boot/bootblock
+.cproject
+.project
