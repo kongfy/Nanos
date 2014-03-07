@@ -3,7 +3,8 @@
 #include "device.h"
 
 /* 8253输入频率为1.193182MHz */
-#define TIMER_PORT 0x40 //PIT输出Channel 0在x86的I/O ports中编号为0x40
+// PIT输出Channel 0在x86的I/O ports中编号为0x40
+#define TIMER_PORT 0x40
 #define FREQ_8253 1193182
 
 void
@@ -25,4 +26,5 @@ init_timer(void) {
 	out_byte(TIMER_PORT + 0, counter / 256);
 }
 
-// 详细参见http://wiki.osdev.org/Programmable_Interval_Timer
+// 详细参见 http://wiki.osdev.org/Programmable_Interval_Timer
+// 另外一个简洁的介绍 http://en.wikibooks.org/wiki/X86_Assembly/Programmable_Interval_Timer

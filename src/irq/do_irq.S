@@ -33,4 +33,6 @@ asm_do_irq:
 
 	popal
 	addl $4, %esp
-	iret
+	iret // ISR（Interrupt Service Routines）必须以iret返回
+
+// 详细参见 http://wiki.osdev.org/Interrupt_Service_Routines

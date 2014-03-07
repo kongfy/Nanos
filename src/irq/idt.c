@@ -12,7 +12,7 @@ set_intr(struct GateDescriptor *ptr, uint32_t selector, uint32_t offset, uint32_
 	ptr->offset_15_0 = offset & 0xFFFF;
 	ptr->segment = selector << 3;
 	ptr->pad0 = 0;
-	ptr->type = INTERRUPT_GATE_32;
+	ptr->type = INTERRUPT_GATE_32; // 0xE代表是32位中断
 	ptr->system = FALSE;
 	ptr->privilege_level = dpl;
 	ptr->present = TRUE;
@@ -25,7 +25,7 @@ set_trap(struct GateDescriptor *ptr, uint32_t selector, uint32_t offset, uint32_
 	ptr->offset_15_0 = offset & 0xFFFF;
 	ptr->segment = selector << 3;
 	ptr->pad0 = 0;
-	ptr->type = TRAP_GATE_32;
+	ptr->type = TRAP_GATE_32; // 0xF代表是32位异常
 	ptr->system = FALSE;
 	ptr->privilege_level = dpl;
 	ptr->present = TRUE;
@@ -76,6 +76,7 @@ void init_idt() {
 	set_trap(idt + 13, SEG_KERNEL_CODE, (uint32_t)vec13, DPL_KERNEL);
 
 	/* 设置外部中断的处理 */
+	// irq0增加了32的offset,参见 http://en.wikibooks.org/wiki/X86_Assembly/Programmable_Interrupt_Controller
 	set_intr(idt + 32, SEG_KERNEL_CODE, (uint32_t)irq0, DPL_KERNEL);
 	set_intr(idt + 33, SEG_KERNEL_CODE, (uint32_t)irq1, DPL_KERNEL);
 
@@ -83,3 +84,5 @@ void init_idt() {
 	save_idt(idt, sizeof(idt));
 }
 
+
+// 详细参见 http://wiki.osdev.org/IDT
