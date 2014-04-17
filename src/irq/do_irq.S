@@ -25,7 +25,7 @@
 .globl asm_do_irq
 .extern irq_handle
 asm_do_irq:
-	pushal
+	pushal # 依次把寄存器AX、CX、DX、BX、SP、BP、SI和DI压栈
 
 	pushl %esp
 	call irq_handle
@@ -33,6 +33,6 @@ asm_do_irq:
 
 	popal
 	addl $4, %esp
-	iret // ISR（Interrupt Service Routines）必须以iret返回
+	iret # ISR（Interrupt Service Routines）必须以iret返回
 
-// 详细参见 http://wiki.osdev.org/Interrupt_Service_Routines
+# 详细参见 http://wiki.osdev.org/Interrupt_Service_Routines

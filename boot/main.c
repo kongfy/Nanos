@@ -34,7 +34,7 @@ bootmain(void) {
 		for (i = pa + ph->filesz; i < pa + ph->memsz; *i ++ = 0);
 	}
 
-	((void(*)(void))elf->entry)();
+	((void(*)(void))elf->entry)(); // 离开bootloader
 }
 
 void

@@ -44,9 +44,13 @@ start32:
 # GDT
 .p2align 2                         # 对齐
 gdt:
+    # 确保段选择子不能为0
 	SEG_NULLASM                    # GDT第一项必须为空
+	# type 0xA 代表设置了Ex&Rw，表示代码段可执行&可读
 	SEG_ASM(0xA, 0x0, 0xffffffff)  # 代码段描述符
+	# type 0x2 代表设置了Rw，表示数据段可写
 	SEG_ASM(0x2, 0x0, 0xffffffff)  # 数据段描述符
+	# 参见 http://wiki.osdev.org/Global_Descriptor_Table
 
 gdtdesc:                           # GDT描述符
 	.word   (gdtdesc - gdt - 1)    # GDT长度，留意地址运算
