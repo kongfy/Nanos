@@ -6,7 +6,7 @@
 *.backup
 *.img
 *.exe
-game
+kernel
 boot/bootblock
 .cproject
 .project
