@@ -27,7 +27,7 @@
 asm_do_irq:
 	pushal # 依次把寄存器AX、CX、DX、BX、SP、BP、SI和DI压栈
 
-	pushl %esp
+	pushl %esp # 作为irq_handle函数的指针参数使用
 	call irq_handle
 	addl $4, %esp
 
