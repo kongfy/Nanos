@@ -7,7 +7,7 @@ LD = ld
 CFLAGS = -m32 -march=i386 -static -MD -std=gnu89 -ggdb \
 		 -fno-builtin -fno-stack-protector -fno-omit-frame-pointer \
 		 -Wall -Werror -O2 -I./include
-ASFLAGS = -m32 -MD
+ASFLAGS = -ggdb -m32 -MD
 LDFLAGS = -melf_i386
 QEMU = qemu-system-i386
 
@@ -16,23 +16,23 @@ CFILES = $(shell find src/ -name "*.c")
 SFILES = $(shell find src/ -name "*.S")
 OBJS = $(CFILES:.c=.o) $(SFILES:.S=.o)
 
-game.img: game
+kernel.img: kernel
 	@cd boot; make
-	cat boot/bootblock game > game.img
+	cat boot/bootblock kernel > kernel.img
 
-game: $(OBJS)
-	$(LD) $(LDFLAGS) -e game_init -Ttext 0x00100000 -o game $(OBJS)
+kernel: $(OBJS)
+	$(LD) $(LDFLAGS) -e entry -Ttext 0x00100000 -o kernel $(OBJS)
 
 -include $(patsubst %.o, %.d, $(OBJS))
 
 # 定义的一些伪目标
 .PHONY: play clean debug
-play: game.img
-	$(QEMU) -enable-kvm game.img
+play: kernel.img
+	$(QEMU) -serial stdio kernel.img
 
-debug: game.img
-	$(QEMU) -s -S game.img
+debug: kernel.img
+	$(QEMU) -serial stdio -s -S kernel.img
 
 clean:
 	@cd boot; make clean
-	rm -f game game.img $(OBJS) $(OBJS:.o=.d)
+	rm -f kernel kernel.img $(OBJS) $(OBJS:.o=.d)

@@ -8,9 +8,6 @@
 start:
 	cli                       # 关闭外部中断
 
-	movw    $0x13, %ax        # 切换到图形模式
-	int     $0x10             # 使用BIOS中断切换比较容易。在实现OS时不需此步骤
-
 	# 设置正确的段寄存器
 	xorw    %ax, %ax          # %AX = 0
 	movw    %ax, %ds          # %DS = AX (data segment)
