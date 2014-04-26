@@ -1,5 +1,5 @@
 /*
- * stdio.c
+ * printf.c
  *
  *  Created on: 2014-4-26
  *      Author: kongfy

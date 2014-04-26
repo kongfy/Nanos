@@ -1,6 +1,6 @@
 #ifndef __STDIO_H__
 #define __STDIO_H__
 
-int printf(const char *format, ...);
+#include "lib/printf.h"
 
 #endif
