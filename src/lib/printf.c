@@ -5,7 +5,7 @@
  *      Author: kongfy
  */
 
-#include "stdio.h"
+#include "lib/printf.h"
 
 #include "common.h"
 #include "device.h"

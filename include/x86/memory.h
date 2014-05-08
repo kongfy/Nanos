@@ -20,8 +20,14 @@ struct GateDescriptor {
 };
 
 struct TrapFrame {
-	uint32_t edi, esi, ebp, xxx, ebx, edx, ecx, eax;
-	int32_t irq;
+    uint32_t edi, esi, ebp, esp_;
+    uint32_t ebx, edx, ecx, eax;   // Register saved by pushal
+    uint32_t gs, fs, es, ds;       // Segment register
+    int32_t  irq;                  // # of irq
+    uint32_t err, eip, cs, eflags; // Execution state before trap
+    uint32_t esp, ss;              // Used only when returning to DPL=3
 };
+
+typedef struct TrapFrame TrapFrame;
 
 #endif
