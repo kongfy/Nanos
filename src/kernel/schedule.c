@@ -12,14 +12,12 @@
 
 // 调度函数
 inline
-void schedule(TrapFrame *tf)
+void schedule(void)
 {
-    current->tf = tf;
-
     if (list_empty(&queue.ready_queue)) {
-    	current = init_thread;
+    	current = idle;
     } else {
-    	if (current == init_thread) {
+    	if (current == idle) {
         	current = list_entry(queue.ready_queue.next, Thread, runq);
         } else {
     		list_head *next = current->runq.next;

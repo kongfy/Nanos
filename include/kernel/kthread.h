@@ -16,23 +16,23 @@
 typedef struct Thread
 {
     TrapFrame *tf;
-    int32_t pid;
+    pid_t pid;
 
     list_head runq, freeq;
     char kstack[STK_SZ];
 } Thread;
 
-typedef struct PCBQueue
+typedef struct TCBQueue
 {
 	list_head ready_queue, wait_queue;
-} PCBQueue;
+} TCBQueue;
 
 extern Thread *current;
-extern Thread *init_thread;
-extern PCBQueue queue;
+extern Thread *idle;
+extern TCBQueue queue;
 
 // 初始化，创建0号进程
-void init_pcbs(void);
+void init_threads(void);
 // 创建一个内核线程
 Thread *create_kthread(void (*entry)(void));
 // 使当前进程/线程立即阻塞，并可以在未来被唤醒

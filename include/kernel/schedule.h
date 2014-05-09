@@ -12,6 +12,6 @@
 
 // 调度函数
 inline
-void schedule(TrapFrame *tf);
+void schedule(void);
 
 #endif /* __KERNEL_SCHEDULE_H__ */

@@ -15,7 +15,7 @@ entry(void) {
 	init_intr();
 	init_serial();
 
-	init_pcbs();
+	init_threads();
 
 	create_kthread(A);
 	create_kthread(B);
