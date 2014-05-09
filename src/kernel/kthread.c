@@ -14,6 +14,7 @@
 
 // 全局变量
 Thread *current;
+Thread *init_thread;
 PCBQueue queue;
 
 // 文件作用域
@@ -32,25 +33,29 @@ void init_pcbs(void)
 	assert(pid == 0);
 	// 0号进程使用内核默认栈
 
-	current = &pcbs[pid];
+	init_thread = &pcbs[pid];
+	current = init_thread;
 }
 
 // 创建一个内核线程
 Thread *create_kthread(void (*entry)(void))
 {
 	int32_t pid = get_free_pid();
+
 	if (pid < 0) {
 		printf("too many threads!\n");
 		return NULL;
 	}
 
 	Thread *thread = &pcbs[pid];
+	thread->pid = pid;
 	TrapFrame *tf = ((TrapFrame *)(thread->kstack + STK_SZ)) - 1;
 	tf->eax = tf->ebx = tf->ecx = tf->edx = tf->esi = tf->edi = tf->ebp = 0;
 	tf->cs = 1 << 3;
 	tf->eip = (uint32_t)entry;
 	tf->eflags = 1 << 9; // 置IF位
 	tf->ds = tf->es = tf->ss = 2 << 3;
+	thread->tf = tf;
 
 	list_add_tail(&thread->runq, &queue.ready_queue);
 

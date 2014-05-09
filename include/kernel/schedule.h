@@ -11,6 +11,7 @@
 #include "kernel/kthread.h"
 
 // 调度函数
+inline
 void schedule(TrapFrame *tf);
 
 #endif /* __KERNEL_SCHEDULE_H__ */

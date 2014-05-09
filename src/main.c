@@ -2,10 +2,11 @@
 #include "x86.h"
 #include "device.h"
 #include "kernel.h"
+#include "stdio.h"
 
 // 用来测试的内核线程
-void A() { while (1) putchar('a'); }
-void B() { while (1) putchar('b'); }
+void A() { while (1) printf("a"); }
+void B() { while (1) printf("b"); }
 
 void
 entry(void) {

@@ -27,6 +27,7 @@
 # ！调用C编写的中断处理程序(见irq/irq_handle.c)！
 .globl asm_do_irq
 .extern irq_handle
+.extern current
 asm_do_irq:
     pushl %ds; pushl %es; pushl %fs; pushl %gs
     pushal # 依次把寄存器AX、CX、DX、BX、SP、BP、SI和DI压栈
@@ -38,9 +39,13 @@ asm_do_irq:
     call irq_handle
     addl $4, %esp
 
+    # 栈切换
+    movl (current), %eax
+    movl (%eax), %esp # 将sp置为current->tf
+
     popal
     popl %gs; popl %fs; popl %es; popl %ds
-    addl $4, %esp // JYY代码中为8, why?
+    addl $8, %esp # JYY代码中为8, why?
     iret # ISR（Interrupt Service Routines）必须以iret返回
 
 # 详细参见 http://wiki.osdev.org/Interrupt_Service_Routines

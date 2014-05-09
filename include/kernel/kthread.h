@@ -28,6 +28,7 @@ typedef struct PCBQueue
 } PCBQueue;
 
 extern Thread *current;
+extern Thread *init_thread;
 extern PCBQueue queue;
 
 // 初始化，创建0号进程
