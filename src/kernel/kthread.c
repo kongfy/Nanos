@@ -22,7 +22,8 @@ TCBQueue queue;
 static Thread tcbs[MAX_PROCESS];
 
 // 线程退出函数
-void exit(void);
+static inline
+void kthread_exit(void);
 
 // 初始化，创建0号进程
 void init_threads(void)
@@ -51,12 +52,17 @@ Thread *create_kthread(void (*entry)(void))
 
 	Thread *thread = &tcbs[pid];
 	thread->pid = pid;
-	TrapFrame *tf = ((TrapFrame *)(thread->kstack + STK_SZ)) - 1;
+	thread->status = Ready;
+
+	uint32_t *exit_addr = (uint32_t *)(thread->kstack + STK_SZ) - 1;
+	*exit_addr = (uint32_t)kthread_exit;
+
+	TrapFrame *tf = (TrapFrame *)(exit_addr) - 1;
 	tf->eax = tf->ebx = tf->ecx = tf->edx = tf->esi = tf->edi = tf->ebp = 0;
 	tf->cs = SELECTOR_KERNEL(SEG_KERNEL_CODE);
 	tf->eip = (uint32_t)entry;
 	tf->eflags = 1 << 9; // 置IF位
-	tf->ds = tf->es = tf->ss = SELECTOR_KERNEL(SEG_KERNEL_DATA);
+	tf->ds = tf->es = SELECTOR_KERNEL(SEG_KERNEL_DATA);
 	thread->tf = tf;
 
 	list_add_tail(&thread->runq, &queue.ready_queue);
@@ -83,9 +89,17 @@ void unlock(void)
 {
 }
 
-// 线程退出函数
-void exit(void)
+// 内核线程退出函数
+static inline
+void kthread_exit(void)
 {
+	// 释放资源
+	list_del(&current->runq);
+	free_pid(current->pid);
+	current->status = Exit;
 
+	while (TRUE) {
+		wait_for_interrupt();
+	}
 }
 

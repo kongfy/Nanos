@@ -14,19 +14,25 @@
 inline
 void schedule(void)
 {
+	Thread *prev = current;
+	Thread *next = NULL;
+
     if (list_empty(&queue.ready_queue)) {
-    	current = idle;
+    	next = idle;
     } else {
-    	if (current == idle) {
-        	current = list_entry(queue.ready_queue.next, Thread, runq);
+    	if (prev == idle || prev->status == Exit) {
+        	next = list_entry(queue.ready_queue.next, Thread, runq);
         } else {
-    		list_head *next = current->runq.next;
-    		if (next == &queue.ready_queue) {
-    			next = next->next;
+    		list_head *next_head = prev->runq.next;
+    		if (next_head == &queue.ready_queue) {
+    			next_head = next_head->next;
     		}
 
-			current = list_entry(next, Thread, runq);
+			next = list_entry(next_head, Thread, runq);
     	}
     }
 
+    prev->status = Ready;
+    next->status = Running;
+    current = next;
 }

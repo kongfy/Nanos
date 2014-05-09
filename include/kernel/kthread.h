@@ -13,10 +13,18 @@
 
 #define STK_SZ 4096
 
+typedef enum Status
+{
+	Ready = 0,
+	Running,
+	Exit,
+} Status;
+
 typedef struct Thread
 {
     TrapFrame *tf;
     pid_t pid;
+    Status status;
 
     list_head runq, freeq;
     char kstack[STK_SZ];
