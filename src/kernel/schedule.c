@@ -18,21 +18,31 @@ void schedule(void)
 	Thread *next = NULL;
 
     if (list_empty(&queue.ready_queue)) {
+    	// 就绪队列空，取idle线程
     	next = idle;
     } else {
-    	if (prev == idle || prev->status == Exit) {
+    	// 就绪队列非空
+    	if (prev == idle) {
+    		// 当前运行idle线程，从就绪队列中取队首线程调度
         	next = list_entry(queue.ready_queue.next, Thread, runq);
+            prev->status = Ready;
         } else {
-    		list_head *next_head = prev->runq.next;
-    		if (next_head == &queue.ready_queue) {
-    			next_head = next_head->next;
-    		}
+        	if (prev->status != Running) {
+        		// 当前运行线程退出或阻塞
+        		next = list_entry(queue.ready_queue.next, Thread, runq);
+        	} else {
+        		// 调度就绪队列中下一线程
+        		list_head *next_head = prev->runq.next;
+        		if (next_head == &queue.ready_queue) {
+        			next_head = next_head->next;
+        		}
 
-			next = list_entry(next_head, Thread, runq);
+    			next = list_entry(next_head, Thread, runq);
+    		    prev->status = Ready;
+        	}
     	}
     }
 
-    prev->status = Ready;
     next->status = Running;
     current = next;
 }
