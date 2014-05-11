@@ -5,61 +5,59 @@
 #include "stdio.h"
 
 // 用来测试的内核线程
-void A()
-{
-	int cnt = 0;
-	while (1) {
-		cnt++;
-		cnt %= 5000;
-		if (cnt == 0) {
-			printf("a");
-		}
-	}
+Thread *tcb_a, *tcb_b, *tcb_c, *tcb_d;
+
+void A () {
+    int x = 0;
+
+    while(1) {
+        if(x % 100000 == 0) {
+            printf("a");
+            wakeup(tcb_b);
+            sleep();
+        }
+        x ++;
+    }
 }
+void B () {
+    int x = 0;
 
-void B()
-{
-	int cnt = 0;
-	while (1) {
-		cnt++;
-		cnt %= 5000;
-		if (cnt == 0) {
-			printf("b");
-		}
-	}
+    sleep();
+    while(1) {
+        if(x % 100000 == 0) {
+            printf("b");
+            wakeup(tcb_c);
+            sleep();
+        }
+        x ++;
+    }
 }
+void C () {
+    int x = 0;
 
-void D()
-{
-	int cnt = 0;
-	while (1) {
-		cnt++;
-		cnt %= 5000;
-		if (cnt == 0) {
-			printf("d");
-		}
-	}
+    sleep();
+    while(1) {
+        if(x % 100000 == 0) {
+            printf("c");
+            wakeup(tcb_d);
+            sleep();
+        }
+        x ++;
+    }
 }
+void D () {
+    int x = 0;
 
-void C()
-{
-	int i;
-
-	for (i = 0; i < 5; ++i) {
-		printf("c");
-		create_kthread(D);
-	}
-
-	printf("\nthread will exit.\n");
+    sleep();
+    while(1) {
+        if(x % 100000 == 0) {
+            printf("d");
+            wakeup(tcb_a);
+            sleep();
+        }
+        x ++;
+    }
 }
-
-void E()
-{
-	sleep();
-
-	printf("\nthread will exit.\n");
-}
-
 
 void
 entry(void) {
@@ -70,8 +68,10 @@ entry(void) {
 
 	init_threads();
 
-	create_kthread(A);
-	create_kthread(B);
+	tcb_d = create_kthread(D);
+	tcb_c = create_kthread(C);
+	tcb_b = create_kthread(B);
+	tcb_a = create_kthread(A);
 
 	enable_interrupt();
 	while (1) {

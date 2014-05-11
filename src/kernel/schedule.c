@@ -11,7 +11,6 @@
 #include "stdio.h"
 
 // 调度函数
-inline
 void schedule(void)
 {
 	Thread *prev = current;
