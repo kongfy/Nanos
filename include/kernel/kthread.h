@@ -17,6 +17,7 @@ typedef enum Status
 {
 	Ready = 0,
 	Running,
+	Block,
 	Exit,
 } Status;
 
@@ -25,8 +26,9 @@ typedef struct Thread
     TrapFrame *tf;
     pid_t pid;
     Status status;
+    uint32_t lock_count;
 
-    list_head runq, freeq;
+    list_head runq;
     char kstack[STK_SZ];
 } Thread;
 

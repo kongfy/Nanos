@@ -10,6 +10,7 @@
 #include "kernel/list.h"
 #include "kernel/pid.h"
 
+#include "common.h"
 #include "x86.h"
 #include "stdio.h"
 
@@ -53,6 +54,7 @@ Thread *create_kthread(void (*entry)(void))
 	Thread *thread = &tcbs[pid];
 	thread->pid = pid;
 	thread->status = Ready;
+	thread->lock_count = 0;
 
 	uint32_t *exit_addr = (uint32_t *)(thread->kstack + STK_SZ) - 1;
 	*exit_addr = (uint32_t)kthread_exit;
@@ -70,23 +72,51 @@ Thread *create_kthread(void (*entry)(void))
 	return thread;
 }
 
+// 短临界区保护，实现关中断保护的原子操作
+void lock(void)
+{
+	disable_interrupt();
+	current->lock_count++;
+}
+
+void unlock(void)
+{
+	assert(current->lock_count > 0);
+	current->lock_count--;
+
+	if (current->lock_count == 0) {
+		enable_interrupt();
+	}
+}
+
 // 使当前进程/线程立即阻塞，并可以在未来被唤醒
 void sleep(void)
 {
+	lock();
+
+	current->status = Block;
+	list_del(&current->runq);
+	list_add_tail(&current->runq, &queue.wait_queue);
+
+	unlock();
+
+	asm volatile("int $0x80");
 }
 
 // 唤醒一个进程/线程
 void wakeup(Thread *t)
 {
-}
+	if (t->status != Block) {
+		return;
+	}
 
-// 短临界区保护，实现关中断保护的原子操作
-void lock(void)
-{
-}
+	lock();
 
-void unlock(void)
-{
+	t->status = Ready;
+	list_del(&t->runq);
+	list_add_tail(&t->runq, &queue.ready_queue);
+
+	unlock();
 }
 
 // 内核线程退出函数

@@ -53,6 +53,13 @@ void C()
 	printf("\nthread will exit.\n");
 }
 
+void E()
+{
+	sleep();
+
+	printf("\nthread will exit.\n");
+}
+
 
 void
 entry(void) {
@@ -65,7 +72,6 @@ entry(void) {
 
 	create_kthread(A);
 	create_kthread(B);
-	create_kthread(C);
 
 	enable_interrupt();
 	while (1) {

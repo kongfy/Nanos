@@ -13,6 +13,9 @@ void irq_handle(struct TrapFrame *tf) {
 		out_byte(0x61, val | 0x80);
 		out_byte(0x61, val);
 		printf("%d\n", code);
+	} else if (tf->irq == 0x80) {
+		current->tf = tf;
+		schedule();
 	} else {
 		assert(0);
 	}
