@@ -44,7 +44,7 @@ asm_do_irq:
 
     # 栈切换
     movl (current), %eax
-    movl (%eax), %esp # 将sp置为current->tf
+    movl (%eax), %esp # 将esp置为current->tf
 
     popal
     popl %gs; popl %fs; popl %es; popl %ds

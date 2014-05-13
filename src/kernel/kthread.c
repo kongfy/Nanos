@@ -23,7 +23,6 @@ TCBQueue queue;
 static Thread tcbs[MAX_PROCESS];
 
 // 线程退出函数
-static inline
 void kthread_exit(void);
 
 // 初始化，创建0号进程
@@ -120,7 +119,6 @@ void wakeup(Thread *t)
 }
 
 // 内核线程退出函数
-static inline
 void kthread_exit(void)
 {
 	// 释放资源
@@ -128,8 +126,6 @@ void kthread_exit(void)
 	free_pid(current->pid);
 	current->status = Exit;
 
-	while (TRUE) {
-		wait_for_interrupt();
-	}
+	asm volatile("int $0x80");
 }
 
