@@ -97,9 +97,9 @@ void sleep(void)
 	list_del(&current->runq);
 	list_add_tail(&current->runq, &queue.wait_queue);
 
-	unlock();
-
 	asm volatile("int $0x80");
+
+	unlock();
 }
 
 // 唤醒一个进程/线程
