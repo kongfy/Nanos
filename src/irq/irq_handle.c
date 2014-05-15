@@ -17,6 +17,12 @@ void irq_handle(struct TrapFrame *tf) {
 		current->tf = tf;
 		schedule();
 	} else {
+		if (tf->irq == -1) {
+			printf("\nUnhandled exception!\n");
+		} else {
+			printf("\nUnexpected exception #%d\n", tf->irq);
+		}
+
 		assert(0);
 	}
 }
