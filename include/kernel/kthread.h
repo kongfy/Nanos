@@ -15,10 +15,10 @@
 
 typedef enum Status
 {
-	Ready = 0,
-	Running,
-	Block,
-	Exit,
+    Ready = 0,
+    Running,
+    Block,
+    Exit,
 } Status;
 
 typedef struct Thread
@@ -34,7 +34,7 @@ typedef struct Thread
 
 typedef struct TCBQueue
 {
-	list_head ready_queue, wait_queue;
+    list_head ready_queue, wait_queue;
 } TCBQueue;
 
 extern Thread *current;

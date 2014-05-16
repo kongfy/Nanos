@@ -8,20 +8,20 @@
 
 void
 entry(void) {
-	init_timer();
-	init_idt();
-	init_intr();
-	init_serial();
+    init_timer();
+    init_idt();
+    init_intr();
+    init_serial();
 
-	init_threads();
+    init_threads();
 
-	test_sleep_wakeup();
+    test_sleep_wakeup();
 
-	enable_interrupt();
-	while (1) {
-		wait_for_interrupt();
-	}
-	assert(0);
+    enable_interrupt();
+    while (1) {
+        wait_for_interrupt();
+    }
+    assert(0);
 }
 
 
