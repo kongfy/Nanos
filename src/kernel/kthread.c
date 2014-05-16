@@ -44,7 +44,10 @@ void init_threads(void)
 // 创建一个内核线程
 Thread *create_kthread(void (*entry)(void))
 {
+	lock();
 	pid_t pid = get_free_pid();
+	unlock();
+
 	if (pid < 0) {
 		printf("too many threads!\n");
 		return NULL;
@@ -59,14 +62,18 @@ Thread *create_kthread(void (*entry)(void))
 	*exit_addr = (uint32_t)kthread_exit;
 
 	TrapFrame *tf = (TrapFrame *)(exit_addr) - 1;
-	tf->eax = tf->ebx = tf->ecx = tf->edx = tf->esi = tf->edi = tf->ebp = 0;
+	tf->eax = tf->ebx = tf->ecx = tf->edx = tf->esi = tf->edi = tf->ebp = tf->esp_ = 0;
 	tf->cs = SELECTOR_KERNEL(SEG_KERNEL_CODE);
 	tf->eip = (uint32_t)entry;
 	tf->eflags = 1 << 9; // 置IF位
+	tf->err = tf->irq = 0;
+	tf->gs = tf->fs = 0;
 	tf->ds = tf->es = SELECTOR_KERNEL(SEG_KERNEL_DATA);
 	thread->tf = tf;
 
+	lock();
 	list_add_tail(&thread->runq, &queue.ready_queue);
+	unlock();
 
 	return thread;
 }
@@ -122,10 +129,14 @@ void wakeup(Thread *t)
 void kthread_exit(void)
 {
 	// 释放资源
+	lock();
+
 	list_del(&current->runq);
 	free_pid(current->pid);
 	current->status = Exit;
 
 	asm volatile("int $0x80");
+
+	unlock();
 }
 

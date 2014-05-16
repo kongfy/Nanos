@@ -10,6 +10,8 @@
 
 #include "common.h"
 
+// 简化PID实现，使PID可以直接作为PCB数组下标实现
+// 使通过PID查找PCB变得容易，但是限制了MAX_PID和MAX_PROCESS的关系
 #define MAX_PROCESS 256
 #define MAX_PID (MAX_PROCESS - 1)
 

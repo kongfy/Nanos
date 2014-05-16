@@ -55,7 +55,7 @@ pid_t min_available_pid(void)
 
 pid_t get_free_pid(void)
 {
-	if (max_pid < MAX_PID) {
+	if (max_pid <= MAX_PID) {
 		set_map(max_pid);
 		return max_pid++;
 	}
