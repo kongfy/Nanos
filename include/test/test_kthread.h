@@ -17,4 +17,7 @@ void test_pid_alloc();
 // 内核线程sleep() wakeup()测试，交替打印abcdabcd
 void test_sleep_wakeup();
 
+// 调度饥饿测试
+void test_hungry();
+
 #endif /* __TEST_TEST_KTHREAD_H__ */

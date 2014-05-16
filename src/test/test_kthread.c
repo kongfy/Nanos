@@ -58,7 +58,7 @@ void test_pid_alloc()
 
 /* <============================= 测试用例分界线 ==============================> */
 
-static Thread *tcb_a, *tcb_b, *tcb_c, *tcb_d;
+static Thread *sleep_wakeup_a, *sleep_wakeup_b, *sleep_wakeup_c, *sleep_wakeup_d;
 
 void sleep_wakeup_A () {
     int x = 0;
@@ -66,7 +66,7 @@ void sleep_wakeup_A () {
     while(1) {
         if(x % 100000 == 0) {
             printf("a");
-            wakeup(tcb_b);
+            wakeup(sleep_wakeup_b);
             sleep();
         }
         x++;
@@ -80,7 +80,7 @@ void sleep_wakeup_B () {
     while(1) {
         if(x % 100000 == 0) {
             printf("b");
-            wakeup(tcb_c);
+            wakeup(sleep_wakeup_c);
             sleep();
         }
         x++;
@@ -94,7 +94,7 @@ void sleep_wakeup_C () {
     while(1) {
         if(x % 100000 == 0) {
             printf("c");
-            wakeup(tcb_d);
+            wakeup(sleep_wakeup_d);
             sleep();
         }
         x++;
@@ -108,7 +108,7 @@ void sleep_wakeup_D () {
     while(1) {
         if(x % 100000 == 0) {
             printf("d");
-            wakeup(tcb_a);
+            wakeup(sleep_wakeup_a);
             sleep();
         }
         x++;
@@ -117,11 +117,51 @@ void sleep_wakeup_D () {
 
 void test_sleep_wakeup()
 {
-    tcb_d = create_kthread(sleep_wakeup_D);
-    tcb_c = create_kthread(sleep_wakeup_C);
-    tcb_b = create_kthread(sleep_wakeup_B);
-    tcb_a = create_kthread(sleep_wakeup_A);
+    sleep_wakeup_d = create_kthread(sleep_wakeup_D);
+    sleep_wakeup_c = create_kthread(sleep_wakeup_C);
+    sleep_wakeup_b = create_kthread(sleep_wakeup_B);
+    sleep_wakeup_a = create_kthread(sleep_wakeup_A);
 }
 
 /* <============================= 测试用例分界线 ==============================> */
 
+static Thread *hungry_a, *hungry_b;
+
+void hungry_A()
+{
+    while (TRUE) {
+        printf("a");
+        wakeup(hungry_b);
+        sleep();
+    }
+}
+
+void hungry_B()
+{
+    sleep();
+
+    while (TRUE) {
+        printf("b");
+        wakeup(hungry_a);
+        sleep();
+    }
+}
+
+void hungry_C()
+{
+    int x = 0;
+
+    while (TRUE) {
+        if (x % 100000 == 0) {
+            printf("c");
+        }
+        x++;
+    }
+}
+
+void test_hungry()
+{
+    hungry_b = create_kthread(hungry_B);
+    hungry_a = create_kthread(hungry_A);
+    create_kthread(hungry_C);
+}
