@@ -6,10 +6,7 @@
 *.backup
 *.img
 *.exe
-kernel
+/kernel
 boot/bootblock
 .cproject
 .project
-
-!/src/kernel/
-!/include/kernel/
