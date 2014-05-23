@@ -10,5 +10,6 @@
 
 #include "kernel/kthread.h"
 #include "kernel/schedule.h"
+#include "kernel/sem.h"
 
 #endif /* __KERNEL_H__ */

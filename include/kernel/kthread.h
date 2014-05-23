@@ -28,7 +28,7 @@ typedef struct Thread
     Status status;
     uint32_t lock_count;
 
-    list_head runq;
+    list_head runq, semq;
     char kstack[STK_SZ];
 } Thread;
 
