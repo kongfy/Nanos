@@ -38,6 +38,10 @@ void init_threads(void)
     // 0号进程使用内核默认栈
 
     idle = &tcbs[pid];
+    idle->pid = pid;
+    idle->status = Running;
+    idle->lock_count = 0;
+    
     current = idle;
 }
 
