@@ -9,9 +9,12 @@
 #define __KERNEL_KTHREAD_H__
 
 #include "kernel/list.h"
+#include "kernel/sem.h"
+#include "kernel/message.h"
 #include "x86.h"
 
 #define STK_SZ 4096
+#define NR_MSGS 64
 
 typedef enum Status
 {
@@ -28,6 +31,11 @@ typedef struct Thread
     Status status;
     uint32_t lock_count;
 
+    // 消息信箱和信号量
+    Semaphore msg_mutex_lock, msg_sem;
+    uint32_t msg_head, msg_tail;
+    Message msgs[NR_MSGS];
+
     list_head runq, semq;
     char kstack[STK_SZ];
 } Thread;
@@ -40,6 +48,9 @@ typedef struct TCBQueue
 extern Thread *current;
 extern Thread *idle;
 extern TCBQueue queue;
+
+// 根据pid返回对应的pcb
+Thread *find_tcb_by_pid(pid_t pid);
 
 // 初始化，创建0号进程
 void init_threads(void);

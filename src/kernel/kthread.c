@@ -9,6 +9,7 @@
 #include "kernel/kthread.h"
 #include "kernel/list.h"
 #include "kernel/pid.h"
+#include "kernel/sem.h"
 
 #include "common.h"
 #include "x86.h"
@@ -74,6 +75,11 @@ Thread *create_kthread(void (*entry)(void))
     tf->gs = tf->fs = 0;
     tf->ds = tf->es = SELECTOR_KERNEL(SEG_KERNEL_DATA);
     thread->tf = tf;
+
+    // 初始化消息机制信息
+    init_sem(&thread->msg_mutex_lock, 1);
+    init_sem(&thread->msg_sem, 0);
+    thread->msg_head = thread->msg_tail = 0;
 
     lock();
     list_add_tail(&thread->runq, &queue.ready_queue);
@@ -142,5 +148,11 @@ void kthread_exit(void)
     asm volatile("int $0x80");
 
     unlock();
+}
+
+Thread *find_tcb_by_pid(pid_t pid)
+{
+    // TODO 判断
+    return &tcbs[pid];
 }
 

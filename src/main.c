@@ -15,7 +15,7 @@ entry(void) {
 
     init_threads();
 
-    test_sem();
+    test_message();
 
     enable_interrupt();
     while (1) {
