@@ -1,0 +1,12 @@
+*.[oad]
+*~
+~*
+*.swp
+*.bak
+*.backup
+*.img
+*.exe
+/kernel
+boot/bootblock
+.cproject
+.project
