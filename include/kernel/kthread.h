@@ -32,7 +32,7 @@ typedef struct Thread
     uint32_t lock_count;
 
     // 消息信箱和信号量
-    Semaphore msg_mutex_lock, msg_sem;
+    Semaphore msg_sem;
     uint32_t msg_head, msg_tail;
     Message msgs[NR_MSGS];
 

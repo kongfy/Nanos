@@ -12,6 +12,7 @@
 
 #define ANY -1
 #define MSG_SZ 64
+#define MSG_HWINTR -1
 
 typedef struct Message {
     int type; // 消息的类型
@@ -22,4 +23,4 @@ typedef struct Message {
 void send(pid_t dst, Message *m);
 void receive(pid_t src, Message *m);
 
-#endif /* __KERNEL_MESSAGE_H__d */
+#endif /* __KERNEL_MESSAGE_H__ */
