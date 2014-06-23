@@ -9,6 +9,9 @@ inline CR3* get_kcr3();
 inline PDE* get_kpdir();
 inline PTE* get_kptable();
 
+void init_page(void);
+void init_segment(void);
+
 void make_invalid_pde(PDE *);
 void make_invalid_pte(PTE *);
 void make_pde(PDE *, void *);

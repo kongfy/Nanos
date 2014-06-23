@@ -21,7 +21,7 @@ kernel.img: kernel
 	cat boot/bootblock kernel > kernel.img
 
 kernel: $(OBJS)
-	$(LD) $(LDFLAGS) -e entry -Ttext 0x00100000 -o kernel $(OBJS)
+	$(LD) $(LDFLAGS) -e entry -Ttext 0xC0100000 -o kernel $(OBJS)
 
 -include $(patsubst %.o, %.d, $(OBJS))
 

@@ -1,6 +1,5 @@
 #include "x86.h"
 #include "device.h"
-#include "stdio.h"
 #include "kernel.h"
 #include "common.h"
 
