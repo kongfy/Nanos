@@ -23,7 +23,7 @@ void send(pid_t dst, Message *m)
         return;
     }
 
-    m->type = 0; // 类型先随便填一个
+    m->dest = dst;
     if (is_hwintr) {
         m->src = MSG_HWINTR;
     } else {

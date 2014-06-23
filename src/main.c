@@ -1,9 +1,11 @@
 #include "common.h"
 #include "x86.h"
 #include "device.h"
+#include "drivers.h"
 #include "kernel.h"
 #include "stdio.h"
 #include "memory.h"
+#include "drivers/hal.h"
 
 #include "test.h"
 
@@ -41,17 +43,21 @@ init_kernel(void) {
        they have their own virtual address space. Therefore, the
        old GDT located in physical address 0x7C00 cannot be used again. */
     init_segment();
-
-    init_serial();
     init_idt();
     init_intr();
-    init_timer();
 
-    add_irq_handle(1, keyboard_irq);
-
+    // create idle thread
     init_threads();
 
-    test_message();
+    // device
+    init_serial();
+
+    // drivers
+    init_hal();
+    init_timer();
+    init_tty();
+
+    test_drivers();
 
     enable_interrupt();
     while (1) {
