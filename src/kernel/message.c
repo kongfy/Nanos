@@ -68,6 +68,7 @@ void receive(pid_t src, Message *m)
 
         if (flag) {
             // 接收消息成功
+            unlock();
             break;
         } else {
             // 失败，阻塞

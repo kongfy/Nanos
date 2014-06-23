@@ -1,16 +1,7 @@
 #include "common.h"
 #include "x86.h"
 #include "device.h"
-
-static char *
-itoa(int a) {
-    static char buf[30];
-    char *p = buf + sizeof(buf) - 1;
-    do {
-        *--p = '0' + a % 10;
-    } while (a /= 10);
-    return p;
-}
+#include "string.h"
 
 static void
 append(char **p, const char *str) {
@@ -19,8 +10,8 @@ append(char **p, const char *str) {
     }
 }
 
-/* 将文件名和assert fail的行号显示在屏幕上 */
-#define BLUE_SCREEN_TEXT "Assertion failed: "
+/* 将Abort的位置打印在屏幕上 */
+#define BLUE_SCREEN_TEXT "System abort: "
 static void
 display_message(const char *file, int line) {
     static char buf[256] = BLUE_SCREEN_TEXT;

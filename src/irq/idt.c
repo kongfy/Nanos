@@ -86,7 +86,7 @@ void init_idt() {
     set_intr(idt + 33, SEG_KERNEL_CODE, (uint32_t)irq1, DPL_KERNEL);
 
     /* 写入IDT */
-    save_idt(idt, sizeof(idt));
+    write_idtr(idt, sizeof(idt));
 }
 
 

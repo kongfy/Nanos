@@ -4,33 +4,69 @@
 #include "kernel.h"
 #include "common.h"
 
-bool is_hwintr = FALSE;
+#define NR_IRQ_HANDLE 32
 
-void irq_handle(struct TrapFrame *tf) {
-    current->tf = tf;
+/* In Nanos, there are no more than 16(actually, 3) hardward interrupts. */
+#define NR_HARD_INTR 16
 
-    if (tf->irq == 1000) {
-        is_hwintr = TRUE;
-        schedule();
-    } else if (tf->irq == 1001) {
-        is_hwintr = TRUE;
-        uint32_t code = in_byte(0x60);
-        uint32_t val = in_byte(0x61);
-        out_byte(0x61, val | 0x80);
-        out_byte(0x61, val);
-        printf("%d\n", code);
-    } else if (tf->irq == 0x80) {
-        schedule();
-    } else {
-        if (tf->irq == -1) {
-            printf("\nUnhandled exception!\n");
-        } else {
-            printf("\nUnexpected exception #%d\n", tf->irq);
-        }
+/* Structures below is a linked list of function pointers indicating the
+   work to be done for each interrupt. Routines will be called one by
+   another when interrupt comes.
+   For example, the timer interrupts are used for alarm clocks, so
+   device driver of timer will use add_irq_handle to attach a simple
+   alarm checker. Also, the IDE driver needs to write back dirty cache
+   slots periodically. So the IDE driver also calls add_irq_handle
+   to register a handler. */
 
-        assert(0);
+struct IRQ_t {
+    void (*routine)(void);
+    struct IRQ_t *next;
+};
+
+static struct IRQ_t handle_pool[NR_IRQ_HANDLE];
+static struct IRQ_t *handles[NR_HARD_INTR];
+static int handle_count = 0;
+
+void
+add_irq_handle(int irq, void (*func)(void) ) {
+    struct IRQ_t *ptr;
+    assert(irq < NR_HARD_INTR);
+    if (handle_count > NR_IRQ_HANDLE) {
+        panic("Too many irq registrations!");
     }
-
-    is_hwintr = FALSE;
+    ptr = &handle_pool[handle_count ++]; /* get a free handler */
+    ptr->routine = func;
+    ptr->next = handles[irq]; /* insert into the linked list */
+    handles[irq] = ptr;
 }
 
+bool is_hwintr = FALSE;
+
+void irq_handle(TrapFrame *tf) {
+    int irq = tf->irq;
+
+    if (irq < 0) {
+        panic("Unhandled exception!");
+    }
+
+    if (irq < 1000) {
+        if (irq == 0x80) {
+        } else {
+            panic("Unexpected exception #%d\n\33[1;31mHint: The machine is always right! For more details about exception #%d, see\n%s\n\33[0m", irq, irq, logo_i386);
+        }
+    } else if (irq >= 1000) {
+        int irq_id = irq - 1000;
+        assert(irq_id < NR_HARD_INTR);
+        struct IRQ_t *f = handles[irq_id];
+
+        is_hwintr = TRUE;
+        while (f != NULL) { /* call handlers one by one */
+            f->routine();
+            f = f->next;
+        }
+        is_hwintr = FALSE;
+    }
+
+    current->tf = tf;
+    schedule();
+}
