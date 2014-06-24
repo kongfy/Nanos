@@ -50,6 +50,7 @@ void irq_handle(TrapFrame *tf) {
 
     if (irq < 1000) {
         if (irq == 0x80) {
+            need_sched = TRUE;
         } else {
             panic("Unexpected exception #%d\n\33[1;31mHint: The machine is always right! For more details about exception #%d, see\n%s\n\33[0m", irq, irq, logo_i386);
         }
@@ -67,5 +68,7 @@ void irq_handle(TrapFrame *tf) {
     }
 
     current->tf = tf;
-    schedule();
+    if (need_sched) {
+        schedule();
+    }
 }

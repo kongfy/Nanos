@@ -60,16 +60,17 @@ Device *hal_get(const char *name) {
 
 static size_t
 dev_rw(int type, Device *dev, off_t offset, void *buf, size_t count) {
-    DevMessage m;
+    Message m;
+    DevMessage *Msg = (DevMessage *)&m;
     assert(sizeof(DevMessage) <= sizeof(Message)); // Message结构体不能定义得太小
-    m.header.type = type;
-    m.dev_id = dev->dev_id;
-    m.offset = offset;
-    m.buf = buf;
-    m.count = count;
+    Msg->header.type = type;
+    Msg->dev_id = dev->dev_id;
+    Msg->offset = offset;
+    Msg->buf = buf;
+    Msg->count = count;
     send(dev->pid, (Message*)&m);
     receive(dev->pid, (Message*)&m);
-    return m.header.type;
+    return Msg->header.type;
 }
 
 size_t

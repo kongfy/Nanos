@@ -10,9 +10,17 @@
 
 #include "stdio.h"
 
+bool need_sched = FALSE;
+
 // 调度函数
 void schedule(void)
 {
+    if (!need_sched) {
+        return;
+    }
+
+    need_sched = FALSE;
+
     Thread *prev = current;
     Thread *next = NULL;
 

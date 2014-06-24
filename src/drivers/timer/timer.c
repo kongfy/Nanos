@@ -14,11 +14,13 @@ void timerd(void);
 static Time rt;
 
 void init_i8253(void);
+void update_sched(void);
 void update_jiffy(void);
 int read_rtc(int);
 
 void init_timer(void) {
     init_i8253();
+    add_irq_handle(0, update_sched);
     add_irq_handle(0, update_jiffy);
 
     TIME = create_kthread(timerd)->pid;
@@ -41,6 +43,10 @@ static int md(int year, int month) {
     bool leap = (year % 400 == 0) || (year % 4 == 0 && year % 100 != 0);
     static int tab[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     return tab[month] + (leap && month == 2);
+}
+
+void update_sched(void) {
+    need_sched = TRUE;
 }
 
 void update_jiffy(void) {
