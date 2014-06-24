@@ -36,7 +36,7 @@
 
 
 #define C_BLACK  0
-#define C_BLUE   1
+#define C_BLUE   9
 #define C_WHITE  7
 #define C_LWHITE 15
 
