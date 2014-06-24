@@ -3,6 +3,7 @@
 #include "string.h"
 
 #include "drivers/time.h"
+#include "drivers/hal.h"
 
 
 pid_t TIME;
@@ -19,6 +20,9 @@ int read_rtc(int);
 void init_timer(void) {
     init_i8253();
     add_irq_handle(0, update_jiffy);
+
+    TIME = create_kthread(timerd)->pid;
+    hal_register("timer", TIME, 0);
 
     int tmp;
     do {

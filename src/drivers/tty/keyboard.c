@@ -50,6 +50,11 @@ readkey(void) {
             case K_F5:
             case K_F6:
                 consl_feed(current_consl, code); break;
+            case K_F12:
+                printf("\33[1;31mSystem will now reboot.\33[0m\n");
+                asm volatile("movl $0, %esp; pushl $0");
+                assert(0);
+                break;
             case K_LSHFT: shft ++; break;
             case K_RSHFT: shft ++; break;
             case K_CTRL: ctrl ++; break;

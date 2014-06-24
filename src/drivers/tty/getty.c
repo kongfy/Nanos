@@ -1,8 +1,15 @@
+/*
+ * getty.c
+ *
+ *  Created on: 2014-6-24
+ *      Author: kongfy
+ */
+
 #include "common.h"
 #include "drivers/tty.h"
 
 void
-echo() {
+getty() {
     static int tty = 1;
     char name[] = "tty*", buf[256];
     Device *dev;
@@ -31,9 +38,9 @@ echo() {
 }
 
 void
-test_drivers() {
+init_getty() {
     int i;
     for (i = 0; i < NR_TTY; i ++) {
-        wakeup(create_kthread(echo));
+        wakeup(create_kthread(getty));
     }
 }

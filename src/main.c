@@ -57,8 +57,6 @@ init_kernel(void) {
     init_timer();
     init_tty();
 
-    test_drivers();
-
     enable_interrupt();
     while (1) {
         wait_for_interrupt();

@@ -26,6 +26,7 @@
 #define K_F4     62
 #define K_F5     63
 #define K_F6     64
+#define K_F12    88
 
 #define M_CTRL   0x80000000
 #define M_ALT    0x40000000

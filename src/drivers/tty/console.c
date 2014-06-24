@@ -123,6 +123,8 @@ backsp(Console *c) {
         } else {
             c->pos --;
         }
+    } else {
+        /* Optional: Insert code here to play some sound */
     }
 }
 
