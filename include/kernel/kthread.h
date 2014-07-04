@@ -13,6 +13,9 @@
 #include "kernel/message.h"
 #include "x86.h"
 
+#define INTR assert(read_eflags() & IF_MASK)
+#define NOINTR assert(~read_eflags() & IF_MASK)
+
 #define STK_SZ 4096
 #define NR_MSGS 64
 
@@ -29,6 +32,7 @@ typedef struct Thread
     TrapFrame *tf;
     pid_t pid;
     Status status;
+    uint32_t if_status;
     uint32_t lock_count;
 
     // 消息信箱和信号量

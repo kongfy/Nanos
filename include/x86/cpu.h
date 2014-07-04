@@ -108,6 +108,8 @@ wait_for_interrupt() {
     asm volatile("hlt");
 }
 
+#define IF_MASK (1 << 9)
+
 #define NR_IRQ    256
 
 #endif

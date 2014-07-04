@@ -90,17 +90,30 @@ Thread *create_kthread(void (*entry)(void))
 // 短临界区保护，实现关中断保护的原子操作
 void lock(void)
 {
-    disable_interrupt();
+    if (current->lock_count == 0) {
+        current->if_status = read_eflags() & IF_MASK;
+
+        if (current->if_status) {
+            INTR;
+            disable_interrupt();
+        }
+    }
+
+    NOINTR;
     current->lock_count++;
 }
 
 void unlock(void)
 {
+    NOINTR;
     assert(current->lock_count > 0);
     current->lock_count--;
 
     if (current->lock_count == 0) {
-        enable_interrupt();
+        if (current->if_status) {
+            enable_interrupt();
+            INTR;
+        }
     }
 }
 
