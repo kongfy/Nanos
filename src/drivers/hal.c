@@ -59,27 +59,30 @@ Device *hal_get(const char *name) {
 }
 
 static size_t
-dev_rw(int type, Device *dev, off_t offset, void *buf, size_t count) {
+dev_rw(int type, Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t len) {
     Message m;
     DevMessage *Msg = (DevMessage *)&m;
     assert(sizeof(DevMessage) <= sizeof(Message)); // Message结构体不能定义得太小
-    Msg->header.type = type;
+
+    m.type = type;
     Msg->dev_id = dev->dev_id;
     Msg->offset = offset;
     Msg->buf = buf;
-    Msg->count = count;
+    Msg->len = len;
+    Msg->req_pid = reqst_pid;
     send(dev->pid, (Message*)&m);
     receive(dev->pid, (Message*)&m);
-    return Msg->header.type;
+
+    return Msg->ret;
 }
 
 size_t
-dev_read(Device *dev, off_t offset, void *buf, size_t count) {
-    return dev_rw(MSG_DEVRD, dev, offset, buf, count);
+dev_read(Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t len) {
+    return dev_rw(MSG_DEVRD, dev, reqst_pid, offset, buf, len);
 }
 
 size_t
-dev_write(Device *dev, off_t offset, void *buf, size_t count) {
-    return dev_rw(MSG_DEVWR, dev, offset, buf, count);
+dev_write(Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t len) {
+    return dev_rw(MSG_DEVWR, dev, reqst_pid, offset, buf, len);
 }
 

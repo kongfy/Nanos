@@ -8,8 +8,6 @@
 #ifndef __DRIVERS_H__
 #define __DRIVERS_H__
 
-void init_hal();
-void init_timer();
-void init_tty();
+void init_drivers();
 
 #endif /* DRIVERS_H_ */

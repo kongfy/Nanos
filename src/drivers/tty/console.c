@@ -151,8 +151,8 @@ read_request(DevMessage *m) {
         memcpy(&c->rstk[c->rtop ++], m, sizeof(Message));
         if (c->rtop >= RSTK_SZ) panic("too many read request");
     } else {
-        int nread = get_cooked(c, m->buf, m->count);
-        m->header.type = nread;
+        int nread = get_cooked(c, m->buf, m->len);
+        m->ret = nread;
         send(m->header.src, (Message*)m);
     }
 }

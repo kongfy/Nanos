@@ -34,12 +34,12 @@ ttyd(void) {
                     msg = (DevMessage*)&m;
                     if (msg->dev_id >= 0 && msg->dev_id < NR_TTY) {
                         int i;
-                        for (i = 0; i < msg->count; i ++) {
+                        for (i = 0; i < msg->len; i ++) {
                             consl_writec(&ttys[msg->dev_id], ((char*)msg->buf)[i]);
                         }
                         consl_sync(&ttys[msg->dev_id]);
                     }
-                    m.type = msg->count;
+                    msg->ret = msg->len;
                     send(m.src, &m);
                     break;
             }

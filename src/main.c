@@ -5,7 +5,6 @@
 #include "kernel.h"
 #include "stdio.h"
 #include "memory.h"
-#include "drivers/hal.h"
 
 #include "test.h"
 
@@ -53,9 +52,7 @@ init_kernel(void) {
     init_serial();
 
     // drivers
-    init_hal();
-    init_timer();
-    init_tty();
+    init_drivers();
 
     enable_interrupt();
     while (1) {
