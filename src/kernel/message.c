@@ -59,7 +59,11 @@ void receive(pid_t src, Message *m)
         for (i = current->msg_head; i != current->msg_tail; i = (i + 1) % NR_MSGS) {
             Message *msg = &current->msgs[i];
             if (msg->src == src || src == ANY) {
-                *m = current->msgs[current->msg_head++];
+                *m = *msg; // 复制消息
+                if (i != current->msg_head) {
+                    current->msgs[i] = current->msgs[current->msg_head];
+                }
+                current->msg_head++;
                 current->msg_head %= NR_MSGS;
                 flag = TRUE;
                 break;
