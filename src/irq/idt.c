@@ -78,7 +78,7 @@ void init_idt() {
     set_trap(idt + 13, SEG_KERNEL_CODE, (uint32_t)vec13, DPL_KERNEL);
 
     /* the system call 0x80 */
-    set_trap(idt + 0x80, SEG_KERNEL_CODE, (uint32_t)vecsys, DPL_KERNEL);
+    set_trap(idt + 0x80, SEG_KERNEL_CODE, (uint32_t)vecsys, DPL_USER);
 
     /* 设置外部中断的处理 */
     // irq0增加了32的offset,参见 http://en.wikibooks.org/wiki/X86_Assembly/Programmable_Interrupt_Controller
