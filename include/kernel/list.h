@@ -80,6 +80,16 @@ static inline void list_add_tail(struct list_head *new, struct list_head *head)
     __list_add(new, head->prev, head);
 }
 
+static inline void list_add_before(struct list_head *list, struct list_head *new)
+{
+    __list_add(new, list->prev, list);
+}
+
+static inline void list_add_after(struct list_head *list, struct list_head *new)
+{
+    __list_add(new, list, list->next);
+}
+
 /*
  * Delete a list entry by making the prev/next entries
  * point to each other.

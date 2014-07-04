@@ -9,6 +9,7 @@
 #include "boot.h"
 
 #define SECTSIZE 512
+#define KOFFSET  0xC0000000
 
 void readseg(unsigned char *, int, int);
 
@@ -29,12 +30,12 @@ bootmain(void) {
     ph = (struct ProgramHeader*)((char *)elf + elf->phoff);
     eph = ph + elf->phnum;
     for(; ph < eph; ph ++) {
-        pa = (unsigned char*)ph->paddr; /* 获取物理地址 */
+        pa = (unsigned char*)(ph->paddr - KOFFSET); /* 获取物理地址 */
         readseg(pa, ph->filesz, ph->off); /* 读入数据 */
         for (i = pa + ph->filesz; i < pa + ph->memsz; *i ++ = 0);
     }
 
-    ((void(*)(void))elf->entry)(); // 离开bootloader
+    ((void(*)(void))(elf->entry - KOFFSET))(); // 离开bootloader
 }
 
 void

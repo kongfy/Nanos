@@ -16,15 +16,23 @@
 
 void ab_print_A()
 {
-    while (TRUE) {
-        printf("a");
+    int x = 0;
+    while (1) {
+        if (x % 100000 == 0) {
+            printf("a");
+        }
+        x ++;
     }
 }
 
 void ab_print_B()
 {
-    while (TRUE) {
-        printf("b");
+    int x = 0;
+    while (1) {
+        if (x % 100000 == 0) {
+            printf("b");
+        }
+        x ++;
     }
 }
 

@@ -18,6 +18,9 @@
 // 初始化pid
 void init_pid(void);
 
+// 检查pid是否被占用
+bool is_pid_available(pid_t pid);
+
 // 最小的可用pid，如果没有可用pid，返回-1
 pid_t get_free_pid(void);
 

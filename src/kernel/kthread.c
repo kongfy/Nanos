@@ -9,6 +9,7 @@
 #include "kernel/kthread.h"
 #include "kernel/list.h"
 #include "kernel/pid.h"
+#include "kernel/sem.h"
 
 #include "common.h"
 #include "x86.h"
@@ -75,6 +76,10 @@ Thread *create_kthread(void (*entry)(void))
     tf->ds = tf->es = SELECTOR_KERNEL(SEG_KERNEL_DATA);
     thread->tf = tf;
 
+    // 初始化消息队列信息
+    init_sem(&thread->msg_sem, 0);
+    thread->msg_head = thread->msg_tail = 0;
+
     lock();
     list_add_tail(&thread->runq, &queue.ready_queue);
     unlock();
@@ -85,17 +90,30 @@ Thread *create_kthread(void (*entry)(void))
 // 短临界区保护，实现关中断保护的原子操作
 void lock(void)
 {
-    disable_interrupt();
+    if (current->lock_count == 0) {
+        current->if_status = read_eflags() & IF_MASK;
+
+        if (current->if_status) {
+            INTR;
+            disable_interrupt();
+        }
+    }
+
+    NOINTR;
     current->lock_count++;
 }
 
 void unlock(void)
 {
+    NOINTR;
     assert(current->lock_count > 0);
     current->lock_count--;
 
     if (current->lock_count == 0) {
-        enable_interrupt();
+        if (current->if_status) {
+            enable_interrupt();
+            INTR;
+        }
     }
 }
 
@@ -142,5 +160,14 @@ void kthread_exit(void)
     asm volatile("int $0x80");
 
     unlock();
+}
+
+Thread *find_tcb_by_pid(pid_t pid)
+{
+    if (is_pid_available(pid)) {
+        return NULL;
+    }
+
+    return &tcbs[pid];
 }
 
