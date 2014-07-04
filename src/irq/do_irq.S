@@ -33,6 +33,7 @@
 .extern irq_handle
 .extern current # 对应C代码中全局变量current
 asm_do_irq:
+    cli
     pushl %ds; pushl %es; pushl %fs; pushl %gs
     pushal # 依次把寄存器AX、CX、DX、BX、SP、BP、SI和DI压栈
     movw $SELECTOR_KERNEL(SEG_KERNEL_DATA), %ax

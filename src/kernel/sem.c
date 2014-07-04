@@ -15,6 +15,7 @@ void P(Semaphore *sem)
     if (sem->count < 0) {
         list_add_tail(&current->semq, &sem->queue); // You should add ListHead semq in the Thread structure
         sleep(); // sleep!
+        NOINTR;
     }
 
     unlock();
