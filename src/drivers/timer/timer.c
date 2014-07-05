@@ -3,7 +3,7 @@
 #include "string.h"
 
 #include "drivers/time.h"
-#include "drivers/hal.h"
+#include "hal.h"
 
 
 pid_t TIME;

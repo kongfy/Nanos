@@ -2,6 +2,7 @@
 #include "x86.h"
 #include "device.h"
 #include "drivers.h"
+#include "server.h"
 #include "kernel.h"
 #include "stdio.h"
 #include "memory.h"
@@ -52,7 +53,12 @@ init_kernel(void) {
     init_serial();
 
     // drivers
-    init_drivers();
+    //init_drivers();
+
+    // servers
+    //init_fm();
+
+    test_ab_print();
 
     enable_interrupt();
     while (1) {

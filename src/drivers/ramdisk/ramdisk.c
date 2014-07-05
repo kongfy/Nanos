@@ -8,7 +8,7 @@
 
 #include "kernel.h"
 #include "common.h"
-#include "drivers/hal.h"
+#include "hal.h"
 #include "drivers/ramdisk.h"
 
 pid_t RAMDISK;

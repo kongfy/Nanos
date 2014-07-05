@@ -5,8 +5,7 @@
  *      Author: kongfy
  */
 
-#include "drivers.h"
-#include "drivers/hal.h"
+#include "hal.h"
 
 void init_hal();
 void init_timer();

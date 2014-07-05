@@ -6,12 +6,8 @@
  */
 
 #include "kernel.h"
-#include "drivers/hal.h"
+#include "hal.h"
 #include "drivers/ramdisk.h"
-
-#define NR_MAX_FILE 8
-#define NR_FILE_SIZE (128 * 1024)
-#define NR_DISK_SIZE (NR_MAX_FILE * NR_FILE_SIZE)
 
 static uint8_t file[NR_MAX_FILE][NR_FILE_SIZE] = {
     {0x12, 0x34, 0x56, 0x78},   // the first file '0'

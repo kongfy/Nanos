@@ -11,5 +11,6 @@
 #include "test/test_kthread.h"
 #include "test/test_sem.h"
 #include "test/test_message.h"
+#include "test/test_ramdisk.h"
 
 #endif /* __TEST_H__ */

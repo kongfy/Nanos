@@ -1,6 +1,6 @@
 #include "kernel.h"
+#include "hal.h"
 #include "drivers/tty.h"
-#include "drivers/hal.h"
 
 void
 ttyd(void) {

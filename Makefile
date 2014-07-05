@@ -6,8 +6,8 @@ CC = gcc
 LD = ld
 CFLAGS = -m32 -march=i386 -static -MD -std=gnu89 -ggdb \
 		 -fno-builtin -fno-stack-protector -fno-omit-frame-pointer \
-		 -Wall -Werror -O2 -I./include
-ASFLAGS = -ggdb -m32 -MD -I./include
+		 -Wall -Werror -O2 -I./include -I./include/lib
+ASFLAGS = -ggdb -m32 -MD -I./include -I./include/lib
 LDFLAGS = -melf_i386
 QEMU = qemu-system-i386
 

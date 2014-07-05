@@ -20,6 +20,11 @@ typedef struct Message {
     char payload[MSG_SZ];
 } Message;
 
+typedef struct MsgHead {
+    int type; // 消息的类型
+    pid_t src, dest; // 消息发送者和接收者的pid
+} MsgHead;
+
 void send(pid_t dst, Message *m);
 void receive(pid_t src, Message *m);
 

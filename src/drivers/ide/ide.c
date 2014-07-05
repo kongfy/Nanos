@@ -1,5 +1,5 @@
 #include "kernel.h"
-#include "drivers/hal.h"
+#include "hal.h"
 #include "drivers/ide.h"
 #include "drivers/time.h"
 

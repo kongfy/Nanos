@@ -1,7 +1,7 @@
 #include "common.h"
 #include "x86.h"
 #include "kernel.h"
-#include "drivers/hal.h"
+#include "hal.h"
 #include "drivers/ide.h"
 
 #define IDE_PORT_CTRL   0x3F6
