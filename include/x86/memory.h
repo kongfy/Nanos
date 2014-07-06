@@ -114,7 +114,7 @@ typedef struct TrapFrame {
     uint32_t gs, fs, es, ds;       // Segment register
     int32_t  irq;                  // # of irq
     uint32_t err, eip, cs, eflags; // Execution state before trap
-    uint32_t esp, ss;              // Used only when returning to DPL=3
+    // uint32_t esp, ss;              // Used only when returning to DPL=3
 } TrapFrame;
 
 #endif /* __ASSEMBLER__ */

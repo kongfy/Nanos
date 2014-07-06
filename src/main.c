@@ -53,12 +53,12 @@ init_kernel(void) {
     init_serial();
 
     // drivers
-    //init_drivers();
+    init_drivers();
 
     // servers
-    //init_fm();
+    init_fm();
 
-    test_ab_print();
+    test_ramdisk();
 
     enable_interrupt();
     while (1) {
