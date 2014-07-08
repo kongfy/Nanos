@@ -61,7 +61,14 @@ void receive(pid_t src, Message *m)
             if (msg->src == src || src == ANY) {
                 *m = *msg; // 复制消息
                 if (i != current->msg_head) {
-                    current->msgs[i] = current->msgs[current->msg_head];
+                    // 保证消息按顺序接收
+                    int j = i;
+                    do {
+                        int t = (j - 1 + NR_MSGS) % NR_MSGS;
+
+                        current->msgs[j] = current->msgs[t];
+                        j = t;
+                    } while (j != current->msg_head);
                 }
                 current->msg_head++;
                 current->msg_head %= NR_MSGS;
