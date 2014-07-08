@@ -56,6 +56,8 @@ init_kernel(void) {
     init_drivers();
 
     // servers
+    init_pm();
+    init_mm();
     init_fm();
 
     test_ramdisk();
