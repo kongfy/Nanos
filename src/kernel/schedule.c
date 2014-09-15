@@ -8,7 +8,7 @@
 #include "kernel/schedule.h"
 #include "kernel/kthread.h"
 
-#include "stdio.h"
+#include "memory.h"
 
 bool need_sched = FALSE;
 
@@ -49,4 +49,6 @@ void schedule(void)
 
     next->status = Running;
     current = next;
+
+    write_cr3(get_cr3(current));
 }

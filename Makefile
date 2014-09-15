@@ -28,10 +28,10 @@ kernel: $(OBJS)
 # 定义的一些伪目标
 .PHONY: play clean debug
 play: kernel.img
-	$(QEMU) -serial stdio kernel.img
+	$(QEMU) -no-reboot -no-shutdown -serial stdio kernel.img
 
 debug: kernel.img
-	$(QEMU) -serial stdio -s -S kernel.img
+	$(QEMU) -no-reboot -no-shutdown -serial stdio -s -S kernel.img
 
 clean:
 	@cd boot; make clean

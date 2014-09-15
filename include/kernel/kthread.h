@@ -68,4 +68,10 @@ void wakeup(Thread *t);
 void lock(void);
 void unlock(void);
 
+/* <========================= 给用户进程的数据接口，提供给PM使用 ==========================> */
+
+// 获取一个PCB结构，供PM使用，必须自行负责销毁
+Thread *create_thread();
+inline void thread_ready(Thread *thread); // 使进程进入就绪队列
+
 #endif /* __KERNEL_KTHREAD_H__ */

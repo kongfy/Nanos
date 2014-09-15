@@ -3,7 +3,7 @@
 
 #include "stdio.h"
 
-int abort(const char *, int);
+void abort(const char *, int);
 
 /* assert: 断言条件为真，若为假则蓝屏退出 */
 #define assert(cond) do { \

@@ -8,6 +8,7 @@
 #include "kernel.h"
 #include "hal.h"
 #include "drivers/ramdisk.h"
+#include "programs.h"
 
 static uint8_t file[NR_MAX_FILE][NR_FILE_SIZE] = {
     {"Hello Nanos!"},   // the first file '0'
@@ -15,6 +16,14 @@ static uint8_t file[NR_MAX_FILE][NR_FILE_SIZE] = {
     {"Hello Kongfy!"}   // the third file '2'
 };
 static uint8_t *disk = (void*)file;
+
+void ramdisk_setup(void)
+{
+    int i = 0;
+    for (i = 0; i < hello_len; i++) {
+        file[0][i] = hello[i];
+    }
+}
 
 // zero, 读取该设备会返回指定长度的'\0'字符(即值为0的字节), 写入该设备时数据将会被丢弃
 static inline

@@ -7,7 +7,13 @@
 
 #include "stdio.h"
 
+volatile int x = 10;
+
 int main(int argc, char *argv[])
 {
+    while (1) {
+        x++;
+    }
+
     return 0;
 }

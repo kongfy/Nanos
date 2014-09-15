@@ -9,15 +9,6 @@
 
 #include "test.h"
 
-void keyboard_irq(void)
-{
-    uint32_t code = in_byte(0x60);
-    uint32_t val = in_byte(0x61);
-    out_byte(0x61, val | 0x80);
-    out_byte(0x61, val);
-    printf("%d\n", code);
-}
-
 void init_kernel(void);
 
 void
@@ -59,8 +50,6 @@ init_kernel(void) {
     init_pm();
     init_mm();
     init_fm();
-
-    test_ramdisk();
 
     enable_interrupt();
     while (1) {

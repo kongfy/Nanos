@@ -49,5 +49,7 @@ void fm_server_thread()
             }
         }
     }
+
+    assert(0);
 }
 

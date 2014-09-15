@@ -171,3 +171,35 @@ Thread *find_tcb_by_pid(pid_t pid)
     return &tcbs[pid];
 }
 
+/* <========================= 给用户进程的数据接口，提供给PM使用 ==========================> */
+
+// 获取一个PCB结构，供PM使用，必须自行负责销毁
+Thread *create_thread()
+{
+    lock();
+    pid_t pid = get_free_pid();
+    unlock();
+
+    if (pid < 0) {
+        printf("too many threads!\n");
+        return NULL;
+    }
+
+    Thread *thread = &tcbs[pid];
+    thread->pid = pid;
+    thread->status = Ready;
+    thread->lock_count = 0;
+
+    // 初始化消息队列信息
+    init_sem(&thread->msg_sem, 0);
+    thread->msg_head = thread->msg_tail = 0;
+
+    return thread;
+}
+
+inline void thread_ready(Thread *thread)
+{
+    lock();
+    list_add_tail(&thread->runq, &queue.ready_queue);
+    unlock();
+}
