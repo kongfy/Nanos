@@ -24,13 +24,15 @@ static PTE ptable_pool[TOTAL_MAX_PTE] align_to_page;                     // 用�
 
 static unsigned int base = KMEM;
 
-inline unsigned int max(unsigned int a, unsigned int b)
+static inline
+unsigned int max(unsigned int a, unsigned int b)
 {
     if (a > b) return a;
     return b;
 }
 
-inline unsigned int min(unsigned int a, unsigned int b)
+static inline
+unsigned int min(unsigned int a, unsigned int b)
 {
     if (a < b) return a;
     return b;
@@ -75,7 +77,8 @@ void create_vm(Thread *thread)
 }
 
 // 得到一页页表的第一个页表项，注意页表项是连续使用1024个的
-inline PTE* get_free_ptable()
+static inline
+PTE* get_free_ptable()
 {
     PTE *pte = (PTE *)&ptable_pool;
 
@@ -90,7 +93,6 @@ inline PTE* get_free_ptable()
     assert(0); // 内存用光了
     return NULL;
 }
-
 
 // 简单水位线实现
 unsigned int alloc_pages(Thread *thread, unsigned int vaddr, unsigned int memsz)

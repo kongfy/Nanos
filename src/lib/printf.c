@@ -10,7 +10,7 @@
 #include "common.h"
 #include "device.h"
 
-int print_ctrl(const char *, void *, int *);
+static int print_ctrl(const char *, void *, int *);
 
 // 返回打印出的字符数量
 int printf(const char *format, ...)
@@ -47,7 +47,7 @@ int printf(const char *format, ...)
 }
 
 // 对单个参数进行打印，返回打印的字符数量
-int print_ctrl(const char *ctrl, void *arg, int *ctrl_len)
+static int print_ctrl(const char *ctrl, void *arg, int *ctrl_len)
 {
     if ('%' != ctrl[0]) {
         *ctrl_len = 0;

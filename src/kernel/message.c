@@ -11,11 +11,6 @@
 
 extern bool is_hwintr;
 
-bool is_messages_empty(Thread *thread)
-{
-    return thread->msg_head == thread->msg_tail;
-}
-
 void send(pid_t dst, Message *m)
 {
     Thread *thread = find_tcb_by_pid(dst);

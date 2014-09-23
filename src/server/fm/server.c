@@ -15,7 +15,8 @@
 
 static uint8_t fm_buf[NR_BUFF];
 
-size_t do_read(int file_name, uint8_t *buf, off_t offset, size_t len)
+static size_t
+do_read(int file_name, uint8_t *buf, off_t offset, size_t len)
 {
     Device *dev = hal_get("ram");
 
