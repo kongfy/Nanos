@@ -13,6 +13,7 @@ int main(int argc, char *argv[])
 {
     while (1) {
         x++;
+        printk("hellow, world!\n");
     }
 
     return 0;

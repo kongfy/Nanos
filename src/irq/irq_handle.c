@@ -2,6 +2,8 @@
 #include "device.h"
 #include "kernel.h"
 #include "common.h"
+#include "syscall.h"
+
 
 #define NR_IRQ_HANDLE 32
 
@@ -50,7 +52,18 @@ void irq_handle(TrapFrame *tf) {
 
     if (irq < 1000) {
         if (irq == 0x80) {
-            need_sched = TRUE;
+            // judge by cs is a better choise, but not now!
+            // if (SELECTOR_KERNEL(SEG_USER_CODE) == tf->cs) {
+            if (Running == current->status) {
+                // system call
+                do_syscall(tf->eax,
+                           tf->ebx,
+                           tf->ecx,
+                           tf->edx);
+            } else {
+                // force schedule
+                need_sched = TRUE;
+            }
         } else {
             panic("Unexpected exception #%d\n\33[1;31mHint: The machine is always right! For more details about exception #%d, see\n%s\n\33[0m", irq, irq, logo_i386);
         }
