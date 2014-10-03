@@ -95,7 +95,7 @@ PTE* get_free_ptable()
 }
 
 // 简单水位线实现
-unsigned int alloc_pages(Thread *thread, unsigned int vaddr, unsigned int memsz)
+uint32_t alloc_pages(Thread *thread, uint32_t vaddr, uint32_t memsz)
 {
     uint32_t pa_start = base;
     uint32_t pa_end = (((base + memsz) >> 12) + ((memsz & 0xfff) > 0)) << 12;
@@ -129,4 +129,28 @@ unsigned int alloc_pages(Thread *thread, unsigned int vaddr, unsigned int memsz)
     } while (addr < va_end);
 
     return pa_start | (vaddr & 0xfff);
+}
+
+uint32_t translate_va(Thread *thread, uint32_t vaddr)
+{
+    if (!cr3s[thread->pid].val) {
+        // kernel thread
+        return vaddr;
+    }
+
+    uint32_t pdir_idx, ptable_idx;
+    pdir_idx = vaddr >> 22;
+    ptable_idx = (vaddr >> 12) & 0x3ff;
+
+    PDE *ppdir = (PDE *)va_to_pa(&pdir[thread->pid]);
+    PDE *pde = &ppdir[pdir_idx];
+
+    assert(pde->val);
+
+    PTE *ptable = (PTE *)(pde->page_frame << 12);
+    PTE *pte = &ptable[ptable_idx];
+
+    assert(pte->val);
+
+    return pte->page_frame << 12 | (vaddr & 0xfff);
 }

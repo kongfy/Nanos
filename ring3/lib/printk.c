@@ -4,6 +4,6 @@
 int printk(const char *format, ...)
 {
     // TODO: implement me!
-    syscall(SYS_PRINTK, format);
+    syscall(SYS_PRINTK, &format);
     return 0;
 }

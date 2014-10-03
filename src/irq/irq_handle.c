@@ -56,10 +56,11 @@ void irq_handle(TrapFrame *tf) {
             // if (SELECTOR_KERNEL(SEG_USER_CODE) == tf->cs) {
             if (Running == current->status) {
                 // system call
-                do_syscall(tf->eax,
-                           tf->ebx,
-                           tf->ecx,
-                           tf->edx);
+                uint32_t ret = do_syscall(tf->eax,
+                                          tf->ebx,
+                                          tf->ecx,
+                                          tf->edx);
+                tf->eax = ret; // return value saved in reg eax;
             } else {
                 // force schedule
                 need_sched = TRUE;
