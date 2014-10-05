@@ -11,6 +11,7 @@
 #include "kernel/pid.h"
 
 #include "memory.h"
+#include "string.h"
 
 // 创建一个存放页表的空间
 #define TOTAL_MAX_PTE (32 * (PHY_MEM / PAGE_SIZE))
@@ -52,6 +53,24 @@ inline PDE* get_pdir(Thread *thread)
     return pdir[thread->pid];
 }
 
+// 得到一页页表的第一个页表项，注意页表项是连续使用1024个的
+static inline
+PTE* get_free_ptable()
+{
+    PTE *pte = (PTE *)&ptable_pool;
+
+    while ((uint32_t)pte <= (uint32_t)&ptable_pool[TOTAL_MAX_PTE]) {
+        if (!pte->val) {
+            return pte;
+        }
+
+        pte = (PTE *)((void *)pte + PAGE_SIZE); // 前进一页
+    }
+
+    assert(0); // 内存用光了
+    return NULL;
+}
+
 void create_vm(Thread *thread)
 {
     PDE *ppdir = (PDE *)va_to_pa(pdir[thread->pid]);
@@ -76,22 +95,38 @@ void create_vm(Thread *thread)
     cr3->page_directory_base = ((uint32_t)ppdir) >> 12;
 }
 
-// 得到一页页表的第一个页表项，注意页表项是连续使用1024个的
-static inline
-PTE* get_free_ptable()
+void clone_vm(Thread *parent, Thread *child)
 {
-    PTE *pte = (PTE *)&ptable_pool;
+    PDE *parent_pdir = (PDE *)va_to_pa(get_pdir(parent));
+    PDE *child_pdir = (PDE *)va_to_pa(get_pdir(child));
 
-    while ((uint32_t)pte <= (uint32_t)&ptable_pool[TOTAL_MAX_PTE]) {
-        if (!pte->val) {
-            return pte;
+    uint32_t pdir_idx, ptable_idx;
+
+    for (pdir_idx = 0; pdir_idx < KOFFSET / PD_SIZE; pdir_idx ++) {
+        PDE *parent_pde = &parent_pdir[pdir_idx];
+        PDE *child_pde = &child_pdir[pdir_idx];
+
+        if (parent_pde->val) {
+            PTE *child_ptes = (PTE*)va_to_pa(get_free_ptable());
+            make_pde(child_pde, child_ptes);
+
+            PTE *parent_ptes = (PTE*)(parent_pde->page_frame << 12);
+            for (ptable_idx = 0; ptable_idx < NR_PTE; ptable_idx ++) {
+                PTE *parent_ptable = &parent_ptes[ptable_idx];
+                PTE *child_ptable = &child_ptes[ptable_idx];
+
+                if (parent_ptable->val) {
+                    // alloc one page for child process
+                    uint32_t pa = base;
+                    base += PAGE_SIZE;
+                    make_pte(child_ptable, (void *)pa);
+
+                    // copy physical memory
+                    memcpy((void *)pa, (void *)(parent_ptable->page_frame << 12), PAGE_SIZE);
+                }
+            }
         }
-
-        pte = (PTE *)((void *)pte + PAGE_SIZE); // 前进一页
     }
-
-    assert(0); // 内存用光了
-    return NULL;
 }
 
 // 简单水位线实现

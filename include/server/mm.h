@@ -13,15 +13,17 @@
 
 #define MSG_MM_CREATE_VM 1
 #define MSG_MM_ALLOC_PAGES 2
+#define MSG_MM_FORK 3
 
 void init_mm();
 
 typedef struct MMMessage {
     MsgHead header; // header与Message的头部定义保持一致即可(src, dst, type)
     pid_t pid;
-    unsigned int vaddr;
-    unsigned int memsz;
-    unsigned int paddr; // return value
+    pid_t child_pid; // used in system call : fork
+    uint32_t vaddr;
+    uint32_t memsz;
+    uint32_t paddr; // return value
 } MMMessage;
 
 

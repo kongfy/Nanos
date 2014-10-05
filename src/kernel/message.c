@@ -47,28 +47,31 @@ void receive(pid_t src, Message *m)
 {
     bool flag = FALSE;
     while (TRUE) {
-        int i = 0;
+        uint32_t i = 0;
 
         lock();
 
-        for (i = current->msg_head; i != current->msg_tail; i = (i + 1) % NR_MSGS) {
-            Message *msg = &current->msgs[i];
-            if (msg->src == src || src == ANY) {
-                *m = *msg; // 复制消息
-                if (i != current->msg_head) {
-                    // 保证消息按顺序接收
-                    int j = i;
-                    do {
-                        int t = (j - 1 + NR_MSGS) % NR_MSGS;
+        if (current->msg_head != current->msg_tail) {
+            // message queue can not be empty!!!
+            for (i = current->msg_head; i != current->msg_tail; i = (i + 1) % NR_MSGS) {
+                Message *msg = &current->msgs[i];
+                if (msg->src == src || src == ANY) {
+                    *m = *msg; // 复制消息
+                    if (i != current->msg_head) {
+                        // 保证消息按顺序接收
+                        uint32_t j = i;
+                        do {
+                            int t = (j - 1 + NR_MSGS) % NR_MSGS;
 
-                        current->msgs[j] = current->msgs[t];
-                        j = t;
-                    } while (j != current->msg_head);
+                            current->msgs[j] = current->msgs[t];
+                            j = t;
+                        } while (j != current->msg_head);
+                    }
+                    current->msg_head++;
+                    current->msg_head %= NR_MSGS;
+                    flag = TRUE;
+                    break;
                 }
-                current->msg_head++;
-                current->msg_head %= NR_MSGS;
-                flag = TRUE;
-                break;
             }
         }
 

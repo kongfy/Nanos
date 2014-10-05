@@ -4,5 +4,6 @@
 #include "types.h"
 
 pid_t getpid(void);
+pid_t fork(void);
 
 #endif /* __UNISTD_H__ */

@@ -6,3 +6,8 @@ pid_t getpid(void)
 {
     return syscall(SYS_GETPID);
 }
+
+pid_t fork(void)
+{
+    return syscall(SYS_FORK);
+}

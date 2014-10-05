@@ -20,13 +20,13 @@ OBJS = $(CFILES:.c=.o) $(SFILES:.S=.o)
 
 -include $(patsubst %.o, %.d, $(OBJS))
 
-app: $(OBJS)
+$(TARGET): $(OBJS)
 	$(LD) $(LDFLAGS) -e main -o $(TARGET) $(OBJS) $(LIBS)
 
 # 定义的一些伪目标
 .PHONY: all clean
 
-all: app
+all: $(TARGET)
 
 clean:
 	rm -f $(TARGET) $(OBJS) $(OBJS:.o=.d)

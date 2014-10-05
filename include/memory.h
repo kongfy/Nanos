@@ -22,6 +22,7 @@ inline CR3* get_cr3(Thread *thread);
 inline PDE* get_pdir(Thread *thread);
 
 void create_vm(Thread *thread);
+void clone_vm(Thread *parent, Thread *child);
 uint32_t alloc_pages(Thread *thread, uint32_t vaddr, uint32_t memsz);
 uint32_t translate_va(Thread *thread, uint32_t vaddr);
 

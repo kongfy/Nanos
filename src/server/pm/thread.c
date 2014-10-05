@@ -1,16 +1,13 @@
 #include "kernel.h"
 #include "server.h"
 
+#include "string.h"
 #include "hal.h"
 #include "elf.h"
 
 
-// 进程退出函数
-void process_exit(void)
-{
-}
-
-void create_progress(int file_name)
+static
+void create_process(int file_name)
 {
     assert(current->pid == PM);
 
@@ -85,10 +82,7 @@ void create_progress(int file_name)
 
     /* initialize the PCB, kernel stack, put the user process into ready queue */
 
-    uint32_t *exit_addr = (uint32_t *)(thread->kstack + STK_SZ) - 1;
-    *exit_addr = (uint32_t)process_exit;
-
-    TrapFrame *tf = (TrapFrame *)(exit_addr) - 1;
+    TrapFrame *tf = (TrapFrame *)(&thread->kstack[STK_SZ]) - 1;
     tf->eax = tf->ebx = tf->ecx = tf->edx = tf->esi = tf->edi = tf->ebp = tf->esp_ = 0;
     tf->cs = SELECTOR_KERNEL(SEG_KERNEL_CODE);
     tf->eip = (uint32_t)elf->entry;
@@ -103,6 +97,56 @@ void create_progress(int file_name)
 
 void create_first_process()
 {
-    create_progress(0);
+    create_process(0);
     printf("first process created...\n");
+}
+
+static
+void clone_pcb(Thread *parent, Thread *child)
+{
+    memcpy(child->kstack, parent->kstack, STK_SZ);
+
+    int32_t offset = child->kstack - parent->kstack;
+
+    uint32_t *p = (uint32_t *)parent->tf->ebp;
+    int i = 0;
+    for (i = 0 ; i < 4; ++i) {
+        p = (uint32_t *)*p;
+    }
+
+    TrapFrame *tf = (TrapFrame *)*(p + 2);
+    child->tf = (TrapFrame *)((uint32_t)tf + offset);
+    child->tf->eax = 0;
+    child->tf->esp_ += offset;
+
+    uint32_t *bp = (uint32_t *)&child->tf->ebp;
+    while (*bp) {
+        *bp += offset;
+        bp = (uint32_t *)*bp;
+    }
+
+    return;
+}
+
+pid_t fork_process(Thread *thread)
+{
+    assert(current->pid == PM);
+
+    Thread *child = create_thread();
+    clone_pcb(thread, child);
+
+
+    // fork memory space for child process
+    Message m;
+    MMMessage *msg = (MMMessage *)&m;
+    m.type = MSG_MM_FORK;
+    msg->pid = thread->pid;
+    msg->child_pid = child->pid;
+
+    send(MM, &m);
+    receive(MM, &m);
+
+    thread_ready(child);
+
+    return child->pid;
 }

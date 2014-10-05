@@ -6,6 +6,7 @@
  */
 
 #include "kernel.h"
+#include "common.h"
 
 #include "server/mm.h"
 #include "memory.h"
@@ -19,26 +20,37 @@ void mm_server_thread()
         receive(ANY, &m);
 
         if (m.src == MSG_HWINTR) {
+            // by far, mm do not handle any bottom half
+            assert(0);
         } else {
             MMMessage *msg = (MMMessage *)&m;
             Thread *thread = find_tcb_by_pid(msg->pid);
 
             switch (m.type) {
-                case MSG_MM_CREATE_VM: {
-                    create_vm(thread);
-                    send(m.src, &m);
-                    break;
-                }
-                case MSG_MM_ALLOC_PAGES: {
-                    unsigned int vaddr = msg->vaddr;
-                    unsigned int memsz = msg->memsz;
+            case MSG_MM_CREATE_VM: {
+                create_vm(thread);
+                send(m.src, &m);
+                break;
+            }
+            case MSG_MM_ALLOC_PAGES: {
+                uint32_t vaddr = msg->vaddr;
+                uint32_t memsz = msg->memsz;
 
-                    unsigned int paddr = alloc_pages(thread, vaddr, memsz);
+                uint32_t paddr = alloc_pages(thread, vaddr, memsz);
 
-                    msg->paddr = paddr;
-                    send(m.src, &m);
-                    break;
-                }
+                msg->paddr = paddr;
+                send(m.src, &m);
+                break;
+            }
+            case MSG_MM_FORK: {
+                Thread *child = find_tcb_by_pid(msg->child_pid);
+
+                create_vm(child);
+                clone_vm(thread, child);
+
+                send(m.src, &m);
+                break;
+            }
             }
         }
     }

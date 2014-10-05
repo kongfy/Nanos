@@ -12,8 +12,15 @@ volatile int x = 10;
 
 int main(int argc, char *argv[])
 {
-    pid_t pid = getpid();
+    pid_t pid = fork();
 
+    if (0 == pid) {
+        printk("I'm child\n");
+    } else {
+        printk("child process pid : %d\n", pid);
+    }
+
+    pid = getpid();
     while (1) {
         x++;
         if (x % 1000000 == 0) {

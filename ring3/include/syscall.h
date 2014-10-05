@@ -8,5 +8,9 @@ int syscall(int id, ...);
 #define SYS_PRINTK 0
 // get process pid
 #define SYS_GETPID 1
+// fork
+#define SYS_FORK 2
+// exec
+#define SYS_EXEC 3
 
 #endif /* __SYSCALL_H__ */

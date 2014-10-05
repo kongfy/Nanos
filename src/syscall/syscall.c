@@ -1,7 +1,8 @@
 #include "syscall.h"
 #include "kernel.h"
 
-extern int printk(char **formatp);
+int printk(char **formatp);
+pid_t fork(void);
 
 uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arb3)
 {
@@ -11,6 +12,14 @@ uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arb3)
         break;
     case SYS_GETPID:
         return current->pid;
+        break;
+    case SYS_FORK:
+        return fork();
+        break;
+    case SYS_EXEC:
+        break;
+    default:
+        panic("Undefined system call!\n");
         break;
     }
 
