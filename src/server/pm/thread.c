@@ -7,12 +7,8 @@
 
 
 static
-void create_process(int file_name)
+void init_process_with_elf(Thread *thread, int file_name)
 {
-    assert(current->pid == PM);
-
-    Thread *thread = create_thread();
-
     /* read 512 bytes starting from offset 0 from file "0" into buf */
     /* it contains the ELF header and program header table */
     uint8_t buf[512];
@@ -80,7 +76,7 @@ void create_process(int file_name)
         for (i = pa + ph->filesz; i < pa + ph->memsz; *i ++ = 0);
     }
 
-    /* initialize the PCB, kernel stack, put the user process into ready queue */
+    /* initialize the PCB, kernel stack */
 
     TrapFrame *tf = (TrapFrame *)(&thread->kstack[STK_SZ]) - 1;
     tf->eax = tf->ebx = tf->ecx = tf->edx = tf->esi = tf->edi = tf->ebp = tf->esp_ = 0;
@@ -91,14 +87,14 @@ void create_process(int file_name)
     tf->gs = tf->fs = 0;
     tf->ds = tf->es = SELECTOR_KERNEL(SEG_KERNEL_DATA);
     thread->tf = tf;
-
-    thread_ready(thread);
 }
 
 void create_first_process()
 {
-    create_process(0);
-    printf("first process created...\n");
+    Thread *thread = create_thread();
+    init_process_with_elf(thread, 0);
+    // put the user process into ready queue
+    thread_ready(thread);
 }
 
 static
@@ -149,4 +145,34 @@ pid_t fork_process(Thread *thread)
     thread_ready(child);
 
     return child->pid;
+}
+
+static
+void revoke_vm(Thread *thread)
+{
+    Message m;
+    MMMessage *msg = (MMMessage *)&m;
+    msg->header.type = MSG_MM_REVOKE_VM;
+    msg->pid = thread->pid;
+
+    send(MM, &m);
+    receive(MM, &m);
+}
+
+int exec(Thread *thread, int filename, char *const argv[])
+{
+    // clean up memeory
+    revoke_vm(thread);
+
+    // clean up old PCB
+    thread->status = Ready;
+    thread->lock_count = 0;
+    init_sem(&thread->msg_sem, 0);
+    thread->msg_head = thread->msg_tail = 0;
+
+    init_process_with_elf(thread, filename);
+
+    thread_ready(thread);
+
+    return 0;
 }

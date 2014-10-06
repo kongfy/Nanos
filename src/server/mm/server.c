@@ -51,6 +51,11 @@ void mm_server_thread()
                 send(m.src, &m);
                 break;
             }
+            case MSG_MM_REVOKE_VM: {
+                revoke_vm(thread);
+                send(m.src, &m);
+                break;
+            }
             }
         }
     }

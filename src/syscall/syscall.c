@@ -2,7 +2,8 @@
 #include "kernel.h"
 
 int printk(char **formatp);
-pid_t fork(void);
+pid_t sys_fork(void);
+int sys_exec(int filename, char *const argv[]);
 
 uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arb3)
 {
@@ -14,9 +15,10 @@ uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arb3)
         return current->pid;
         break;
     case SYS_FORK:
-        return fork();
+        return sys_fork();
         break;
     case SYS_EXEC:
+        return sys_exec(arg1, (char *const *)arg2);
         break;
     default:
         panic("Undefined system call!\n");

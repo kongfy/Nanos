@@ -10,12 +10,18 @@
 
 volatile int x = 10;
 
+char *arga = "hello";
+char *argb = "world";
+
 int main(int argc, char *argv[])
 {
     pid_t pid = fork();
 
     if (0 == pid) {
         printk("I'm child\n");
+
+        char *argv[] = {arga, argb, (char *)0};
+        exec(1, argv);
     } else {
         printk("child process pid : %d\n", pid);
     }

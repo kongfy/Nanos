@@ -12,7 +12,8 @@
 #include "elf.h"
 
 void create_first_process();
-pid_t fork_process(Thread *Thread);
+pid_t fork_process(Thread *thread);
+int exec(Thread *thread, int filename, char *const argv[]);
 
 // PM服务器线程
 void pm_server_thread()
@@ -30,11 +31,19 @@ void pm_server_thread()
             Thread *thread = find_tcb_by_pid(m.src);
 
             switch (m.type) {
-                case MSG_PM_FORK: {
-                    msg->ret = fork_process(thread);
+            case MSG_PM_FORK: {
+                msg->ret = fork_process(thread);
+                send(m.src, &m);
+                break;
+            }
+            case MSG_PM_EXEC: {
+                msg->ret = exec(thread, msg->filename, (char * const *)msg->argv);
+                if (msg->ret < 0) {
                     send(m.src, &m);
-                    break;
                 }
+                break;
+            }
+
             }
         }
     }

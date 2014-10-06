@@ -129,6 +129,11 @@ void clone_vm(Thread *parent, Thread *child)
     }
 }
 
+void revoke_vm(Thread *thread)
+{
+    // TODO : implement me!
+}
+
 // 简单水位线实现
 uint32_t alloc_pages(Thread *thread, uint32_t vaddr, uint32_t memsz)
 {

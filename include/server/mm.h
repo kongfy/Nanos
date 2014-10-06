@@ -14,6 +14,7 @@
 #define MSG_MM_CREATE_VM 1
 #define MSG_MM_ALLOC_PAGES 2
 #define MSG_MM_FORK 3
+#define MSG_MM_REVOKE_VM 4
 
 void init_mm();
 

@@ -18,7 +18,9 @@ void init_pm();
 
 typedef struct PMMessage {
     MsgHead header; // header与Message的头部定义保持一致即可(src, dst, type)
-    uint32_t ret;   // return value, eg. child's pid in fork
+    uint32_t filename;
+    uint32_t argv;
+    int32_t ret;   // return value, eg. child's pid in fork
 } PMMessage;
 
 

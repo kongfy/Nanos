@@ -199,6 +199,8 @@ Thread *create_thread()
 
 inline void thread_ready(Thread *thread)
 {
+    thread->status = Ready;
+    
     lock();
     list_add_tail(&thread->runq, &queue.ready_queue);
     unlock();
