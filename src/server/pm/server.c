@@ -13,7 +13,7 @@
 
 void create_first_process();
 pid_t fork_process(Thread *thread);
-int exec(Thread *thread, int filename, char *const argv[]);
+int exec(Thread *thread, int filename, char *argv[]);
 
 // PM服务器线程
 void pm_server_thread()
@@ -37,7 +37,7 @@ void pm_server_thread()
                 break;
             }
             case MSG_PM_EXEC: {
-                msg->ret = exec(thread, msg->filename, (char * const *)msg->argv);
+                msg->ret = exec(thread, msg->filename, (char **)msg->argv);
                 if (msg->ret < 0) {
                     send(m.src, &m);
                 }

@@ -12,15 +12,17 @@ volatile int x = 10;
 
 int main(int argc, char *argv[])
 {
-    /* printk("my argv is : "); */
+    printk("my argv is : ");
 
-    /* int i; */
-    /* for (i = 0; i < argc; ++i) { */
-    /*     printk("%s", argv[i]); */
-    /* } */
+    int i;
+    for (i = 0; i < argc; ++i) {
+        printk("%s", argv[i]);
+    }
+
+    printk("\n");
 
     while (1) {
-        printk("!");
+        //printk("!");
     }
 
     return 0;

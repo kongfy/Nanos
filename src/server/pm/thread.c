@@ -6,8 +6,16 @@
 #include "elf.h"
 
 
+#define MAX_ARG_LEN 128
+#define NR_ARG 32
+#define ARG_BUF_SIZE (MAX_ARG_LEN * NR_ARG)
+
+static char buf[ARG_BUF_SIZE];
+static char * argv_buf[NR_ARG];
+
+
 static
-void init_process_with_elf(Thread *thread, int file_name)
+uint32_t init_process_with_elf(Thread *thread, int file_name)
 {
     /* read 512 bytes starting from offset 0 from file "0" into buf */
     /* it contains the ELF header and program header table */
@@ -76,12 +84,52 @@ void init_process_with_elf(Thread *thread, int file_name)
         for (i = pa + ph->filesz; i < pa + ph->memsz; *i ++ = 0);
     }
 
+    return elf->entry;
+}
+
+void init_stack(Thread *thread, uint32_t entry, char **argv)
+{
     /* initialize the PCB, kernel stack */
 
-    TrapFrame *tf = (TrapFrame *)(&thread->kstack[STK_SZ]) - 1;
+    void *top = &thread->kstack[STK_SZ];
+
+    // push argv into stack
+    if (argv) {
+        uint32_t total_len = 0;
+        int32_t argc = 0;
+
+        char **p = argv_buf;
+        while (*p) {
+            argc++;
+            total_len += strlen(*p) + 1;
+            p++;
+        }
+
+        char *args = (char *)top - total_len;
+        memcpy(args, buf, total_len);
+
+        char **argvs = (char **)args;
+        char *temp = (char *)top;
+        int i = 0;
+        for (i = argc - 1; i >= 0; --i) {
+            temp -= strlen(argv_buf[i]) + 1;
+            argvs -= 1;
+            *argvs = temp;
+        }
+
+        char ***argv_position = (char ***)argvs - 1;
+        *argv_position = argvs;
+
+        int32_t *argc_position = (int32_t *)argv_position - 1;
+        *argc_position = argc;
+
+        top = argc_position - 1; // leave the space for return EIP
+    }
+
+    TrapFrame *tf = (TrapFrame *)top - 1;
     tf->eax = tf->ebx = tf->ecx = tf->edx = tf->esi = tf->edi = tf->ebp = tf->esp_ = 0;
     tf->cs = SELECTOR_KERNEL(SEG_KERNEL_CODE);
-    tf->eip = (uint32_t)elf->entry;
+    tf->eip = entry;
     tf->eflags = 1 << 9; // 置IF位
     tf->err = tf->irq = 0;
     tf->gs = tf->fs = 0;
@@ -92,8 +140,8 @@ void init_process_with_elf(Thread *thread, int file_name)
 void create_first_process()
 {
     Thread *thread = create_thread();
-    init_process_with_elf(thread, 0);
-    // put the user process into ready queue
+    uint32_t entry = init_process_with_elf(thread, 0);
+    init_stack(thread, entry, NULL);
     thread_ready(thread);
 }
 
@@ -159,8 +207,30 @@ void revoke_vm(Thread *thread)
     receive(MM, &m);
 }
 
-int exec(Thread *thread, int filename, char *const argv[])
+int exec(Thread *thread, int filename, char *argv[])
 {
+    // copy the argv to kernel buffer
+    if (argv) {
+        char **p = argv_buf;
+        char **q = argv;
+        char *arg = buf;
+
+        while (true) {
+            char *str;
+            copy_to_kernel(thread, &str, q++, sizeof str);
+
+            if (!str) {
+                break;
+            }
+
+            int len = strcpy_to_kernel(thread, arg, str);
+            *(p++) = arg;
+            arg += len;
+        };
+
+        *p = NULL;
+    }
+
     // clean up memeory
     revoke_vm(thread);
 
@@ -170,7 +240,8 @@ int exec(Thread *thread, int filename, char *const argv[])
     init_sem(&thread->msg_sem, 0);
     thread->msg_head = thread->msg_tail = 0;
 
-    init_process_with_elf(thread, filename);
+    uint32_t entry = init_process_with_elf(thread, filename);
+    init_stack(thread, entry, argv_buf);
 
     thread_ready(thread);
 
