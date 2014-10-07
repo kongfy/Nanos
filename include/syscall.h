@@ -17,5 +17,7 @@ uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arg3);
 #define SYS_EXIT 4
 // waitpid
 #define SYS_WAITPID 5
+// sleep
+#define SYS_SLEEP 6
 
 #endif /* __SYSCALL_H__ */

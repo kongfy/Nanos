@@ -17,5 +17,10 @@ int main(int argc, char *argv[])
         printk("argv[%d] : %s\n", i, argv[i]);
     }
 
+    pid_t pid = getpid();
+    printk("PID %d : now going to sleep\n", pid);
+    sleep(5);
+    printk("PID %d : wake up!!!\n", pid);
+
     return -1; // just for waitpid reture value test.
 }

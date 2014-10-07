@@ -22,6 +22,11 @@ int waitpid(pid_t pid)
     return syscall(SYS_WAITPID, pid);
 }
 
+unsigned int sleep(unsigned int seconds)
+{
+    return syscall(SYS_SLEEP, seconds);
+}
+
 void exit(int status)
 {
     syscall(SYS_EXIT, status);

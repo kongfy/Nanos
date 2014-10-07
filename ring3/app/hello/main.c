@@ -31,9 +31,10 @@ int main(int argc, char *argv[])
     pid = getpid();
     while (1) {
         x++;
-        if (x % 1000000 == 0) {
-            printk("hello from : %d\n", pid);
-        }
+        printk("PID %d : hello, world! No.%d\n", pid, x);
+        printk("PID %d : now going to sleep\n", pid);
+        sleep(1);
+        printk("PID %d : wake up!!!\n", pid);
     }
 
     return 0;

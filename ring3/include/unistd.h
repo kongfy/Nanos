@@ -9,6 +9,7 @@ pid_t fork(void);
 int exec(int filename, char *const argv[]);
 
 int waitpid(pid_t pid);
+unsigned int sleep(unsigned int seconds);
 
 void exit(int status);
 
