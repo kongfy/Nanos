@@ -27,6 +27,19 @@ int sys_exec(int filename, char *const argv[])
     return msg->ret;
 }
 
+int sys_waitpid(pid_t pid)
+{
+    Message m;
+    PMMessage *msg = (PMMessage *)&m;
+    msg->header.type = MSG_PM_WAITPID;
+    msg->pid = pid;
+
+    send(PM, &m);
+    receive(PM, &m);
+
+    return msg->ret;
+}
+
 void sys_exit(int status)
 {
     Message m;

@@ -24,13 +24,15 @@ int main(int argc, char *argv[])
         exec(1, argv);
     } else {
         printk("child process pid : %d\n", pid);
+        int status = waitpid(pid);
+        printk("child exit with code : %d\n", status);
     }
 
     pid = getpid();
     while (1) {
         x++;
         if (x % 1000000 == 0) {
-            printk("hello from process : %d\n", pid);
+            printk("hello from : %d\n", pid);
         }
     }
 

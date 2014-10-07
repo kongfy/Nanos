@@ -248,13 +248,71 @@ int exec_process(Thread *thread, int filename, char *argv[])
     return 0;
 }
 
+typedef struct
+{
+    list_head queue;
+    pid_t pid;
+    Thread *thread;
+} WaitPair;
+
+#define MAX_PAIR 256
+
+static list_head waitq, freeq;
+static WaitPair pairs[MAX_PAIR];
+
+void init_waitpid_structure()
+{
+    INIT_LIST_HEAD(&waitq);
+    INIT_LIST_HEAD(&freeq);
+
+    WaitPair *p = pairs;
+    while (p < &pairs[MAX_PAIR]) {
+        list_add_tail(&p->queue, &freeq);
+        p++;
+    }
+}
+
+void waitpid_process(Thread *thread, pid_t pid)
+{
+    assert(!list_empty(&freeq));
+
+    // do not need lock here, because there is only one thread(PM).
+    WaitPair* pair = list_entry(freeq.next, WaitPair, queue);
+    pair->pid = pid;
+    pair->thread = thread;
+
+    list_del(&pair->queue);
+    list_add_tail(&pair->queue, &waitq);
+}
+
+static void wait_notify(pid_t pid, int status)
+{
+    assert(PM == current->pid);
+
+    WaitPair *pos, *n;
+    list_for_each_entry_safe(pos, n, &waitq, queue) {
+        if (pos->pid == pid) {
+            Message m;
+            PMMessage *msg = (PMMessage *)&m;
+            msg->ret = status;
+            send(pos->thread->pid, &m);
+
+            list_del(&pos->queue);
+            list_add_tail(&pos->queue, &freeq);
+        }
+    }
+}
+
 void exit_process(Thread *thread, int status)
 {
+    pid_t pid = thread->pid;
+
     // clean up memeory
     revoke_vm(thread);
-
     // clean up PCB
     thread_exit(thread);
+
+    wait_notify(pid, status);
 
     return;
 }

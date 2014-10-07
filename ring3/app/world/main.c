@@ -17,5 +17,5 @@ int main(int argc, char *argv[])
         printk("argv[%d] : %s\n", i, argv[i]);
     }
 
-    return 0;
+    return -1; // just for waitpid reture value test.
 }

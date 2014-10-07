@@ -11,9 +11,12 @@
 
 pid_t PM;
 
-extern void pm_server_thread();
+void pm_server_thread();
+void init_waitpid_structure();
 
 void init_pm()
 {
+    init_waitpid_structure();
+
     PM = create_kthread(pm_server_thread)->pid;
 }

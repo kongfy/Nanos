@@ -17,6 +17,11 @@ int exec(int filename, char *const argv[])
     return syscall(SYS_EXEC, filename, argv);
 }
 
+int waitpid(pid_t pid)
+{
+    return syscall(SYS_WAITPID, pid);
+}
+
 void exit(int status)
 {
     syscall(SYS_EXIT, status);

@@ -14,5 +14,7 @@ int syscall(int id, ...);
 #define SYS_EXEC 3
 // exit
 #define SYS_EXIT 4
+// waitpid
+#define SYS_WAITPID 5
 
 #endif /* __SYSCALL_H__ */

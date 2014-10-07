@@ -14,6 +14,7 @@
 #define MSG_PM_FORK 1
 #define MSG_PM_EXEC 2
 #define MSG_PM_EXIT 3
+#define MSG_PM_WAITPID 4
 
 void init_pm();
 
@@ -22,7 +23,8 @@ typedef struct PMMessage {
     uint32_t filename;
     uint32_t argv;
     int32_t status; // used in exit syscall
-    int32_t ret;   // return value, eg. child's pid in fork
+    pid_t pid;      // used in waitpid syscall
+    int32_t ret;   // return value, eg. child's pid in fork & status in waitpid
 } PMMessage;
 
 

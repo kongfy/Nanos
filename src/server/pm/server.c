@@ -14,6 +14,7 @@
 void create_first_process();
 pid_t fork_process(Thread *thread);
 int exec_process(Thread *thread, int filename, char *argv[]);
+void waitpid_process(Thread *thread, pid_t pid);
 void exit_process(Thread *thread, int status);
 
 // PM服务器线程
@@ -42,6 +43,11 @@ void pm_server_thread()
                 if (msg->ret < 0) {
                     send(m.src, &m);
                 }
+                break;
+            }
+            case MSG_PM_WAITPID: {
+                waitpid_process(thread, msg->pid);
+                // do not reply process until target process exit
                 break;
             }
             case MSG_PM_EXIT: {
