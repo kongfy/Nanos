@@ -13,5 +13,7 @@ uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arg3);
 #define SYS_FORK 2
 // exec
 #define SYS_EXEC 3
+// exit
+#define SYS_EXIT 4
 
 #endif /* __SYSCALL_H__ */

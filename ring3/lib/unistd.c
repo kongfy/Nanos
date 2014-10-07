@@ -16,3 +16,8 @@ int exec(int filename, char *const argv[])
 {
     return syscall(SYS_EXEC, filename, argv);
 }
+
+void exit(int status)
+{
+    syscall(SYS_EXIT, status);
+}

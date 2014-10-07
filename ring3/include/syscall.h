@@ -12,5 +12,7 @@ int syscall(int id, ...);
 #define SYS_FORK 2
 // exec
 #define SYS_EXEC 3
+// exit
+#define SYS_EXIT 4
 
 #endif /* __SYSCALL_H__ */

@@ -197,11 +197,24 @@ Thread *create_thread()
     return thread;
 }
 
+inline void thread_exit(Thread *thread)
+{
+    // 释放资源
+    lock();
+
+    list_del(&thread->runq);
+    free_pid(thread->pid);
+    thread->status = Exit;
+
+    unlock();
+}
+
 inline void thread_ready(Thread *thread)
 {
     thread->status = Ready;
-    
+
     lock();
+    list_del(&thread->runq);
     list_add_tail(&thread->runq, &queue.ready_queue);
     unlock();
 }

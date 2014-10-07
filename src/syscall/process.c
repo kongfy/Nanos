@@ -26,3 +26,16 @@ int sys_exec(int filename, char *const argv[])
 
     return msg->ret;
 }
+
+void sys_exit(int status)
+{
+    Message m;
+    PMMessage *msg = (PMMessage *)&m;
+    msg->header.type = MSG_PM_EXIT;
+    msg->status = status;
+
+    send(PM, &m);
+    receive(PM, &m);
+
+    return;
+}

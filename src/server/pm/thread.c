@@ -207,7 +207,7 @@ void revoke_vm(Thread *thread)
     receive(MM, &m);
 }
 
-int exec(Thread *thread, int filename, char *argv[])
+int exec_process(Thread *thread, int filename, char *argv[])
 {
     // copy the argv to kernel buffer
     if (argv) {
@@ -246,4 +246,15 @@ int exec(Thread *thread, int filename, char *argv[])
     thread_ready(thread);
 
     return 0;
+}
+
+void exit_process(Thread *thread, int status)
+{
+    // clean up memeory
+    revoke_vm(thread);
+
+    // clean up PCB
+    thread_exit(thread);
+
+    return;
 }

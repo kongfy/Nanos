@@ -72,6 +72,7 @@ void unlock(void);
 
 // 获取一个PCB结构，供PM使用，必须自行负责销毁
 Thread *create_thread();
+inline void thread_exit(Thread *Thread);
 inline void thread_ready(Thread *thread); // 使进程进入就绪队列
 
 #endif /* __KERNEL_KTHREAD_H__ */

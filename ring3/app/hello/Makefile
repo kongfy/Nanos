@@ -19,7 +19,7 @@ SFILES = $(shell find . -name "*.S")
 OBJS = $(CFILES:.c=.o) $(SFILES:.S=.o)
 
 $(TARGET): $(OBJS)
-	$(LD) $(LDFLAGS) -e main -o $(TARGET) $(OBJS) $(LIBS)
+	$(LD) $(LDFLAGS) -e _start -o $(TARGET) $(OBJS) $(LIBS)
 
 -include $(patsubst %.o, %.d, $(OBJS))
 

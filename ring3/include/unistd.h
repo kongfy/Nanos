@@ -7,5 +7,6 @@ pid_t getpid(void);
 pid_t fork(void);
 
 int exec(int filename, char *const argv[]);
+void exit(int status);
 
 #endif /* __UNISTD_H__ */
