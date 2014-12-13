@@ -1,5 +1,7 @@
 #include "kernel.h"
 #include "server.h"
+#include "memory.h"
+
 
 #include "string.h"
 #include "hal.h"
@@ -84,16 +86,27 @@ uint32_t init_process_with_elf(Thread *thread, int file_name)
         for (i = pa + ph->filesz; i < pa + ph->memsz; *i ++ = 0);
     }
 
+    // User stack, only one page (4 KB) memory by default
+    // Please be careful!
+    m.type = MSG_MM_ALLOC_PAGES;
+    mmmsg->pid = thread->pid;
+    mmmsg->vaddr = KOFFSET - PAGE_SIZE; /* virtual address */
+    mmmsg->memsz = PAGE_SIZE;
+
+    send(MM, &m);
+    receive(MM, &m);
+
     return elf->entry;
 }
 
 void init_stack(Thread *thread, uint32_t entry, char **argv)
 {
-    /* initialize the PCB, kernel stack */
+    /* initialize the PCB, user stack */
 
     void *top = &thread->kstack[STK_SZ];
+    int offset = (void *)KOFFSET - top;
 
-    // push argv into stack
+    // push argv into kernel stack, borrow kernel stack as buffer
     if (argv) {
         uint32_t total_len = 0;
         int32_t argc = 0;
@@ -114,11 +127,11 @@ void init_stack(Thread *thread, uint32_t entry, char **argv)
         for (i = argc - 1; i >= 0; --i) {
             temp -= strlen(argv_buf[i]) + 1;
             argvs -= 1;
-            *argvs = temp;
+            *argvs = (void *)temp + offset;
         }
 
         char ***argv_position = (char ***)argvs - 1;
-        *argv_position = argvs;
+        *argv_position = (void *)argvs + offset;
 
         int32_t *argc_position = (int32_t *)argv_position - 1;
         *argc_position = argc;
@@ -126,14 +139,20 @@ void init_stack(Thread *thread, uint32_t entry, char **argv)
         top = argc_position - 1; // leave the space for return EIP
     }
 
-    TrapFrame *tf = (TrapFrame *)top - 1;
+    // copy to user space
+    size_t len = (void *)&thread->kstack[STK_SZ] - top;
+    uint32_t esp = KOFFSET - len;
+    copy_from_kernel(thread, (void *)esp, top, len);
+
+    TrapFrame *tf = (TrapFrame *)&thread->kstack[STK_SZ] - 1;
     tf->eax = tf->ebx = tf->ecx = tf->edx = tf->esi = tf->edi = tf->ebp = tf->esp_ = 0;
-    tf->cs = SELECTOR_KERNEL(SEG_KERNEL_CODE);
+    tf->cs = SELECTOR_USER(SEG_USER_CODE);
     tf->eip = entry;
     tf->eflags = 1 << 9; // 置IF位
     tf->err = tf->irq = 0;
     tf->gs = tf->fs = 0;
-    tf->ds = tf->es = SELECTOR_KERNEL(SEG_KERNEL_DATA);
+    tf->ds = tf->es = tf->ss = SELECTOR_USER(SEG_USER_DATA);
+    tf->esp = esp;
     thread->tf = tf;
 }
 
@@ -196,7 +215,7 @@ pid_t fork_process(Thread *thread)
 }
 
 static
-void revoke_vm(Thread *thread)
+void revoke_vm_process(Thread *thread)
 {
     Message m;
     MMMessage *msg = (MMMessage *)&m;
@@ -232,7 +251,7 @@ int exec_process(Thread *thread, int filename, char *argv[])
     }
 
     // clean up memeory
-    revoke_vm(thread);
+    revoke_vm_process(thread);
 
     // clean up old PCB
     thread->status = Ready;
@@ -308,7 +327,7 @@ void exit_process(Thread *thread, int status)
     pid_t pid = thread->pid;
 
     // clean up memeory
-    revoke_vm(thread);
+    revoke_vm_process(thread);
     // clean up PCB
     thread_exit(thread);
 

@@ -21,6 +21,8 @@ void make_pte(PTE *, void *);
 inline CR3* get_cr3(Thread *thread);
 inline PDE* get_pdir(Thread *thread);
 
+inline void set_tss_esp0(uint32_t esp);
+
 void create_vm(Thread *thread);
 void revoke_vm(Thread *Thread);
 void clone_vm(Thread *parent, Thread *child);

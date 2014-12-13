@@ -51,4 +51,5 @@ void schedule(void)
     current = next;
 
     write_cr3(get_cr3(current));
+    set_tss_esp0((uint32_t)&current->kstack[STK_SZ]);
 }

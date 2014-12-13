@@ -72,6 +72,10 @@ init_page(void) {
 /* One TSS will be enough for all processes in ring 3. It will be used in Lab3. */
 static TSS tss; 
 
+/*
+ * 使用一个TSS段来进行硬件堆栈切换
+ * http://wiki.osdev.org/Getting_to_Ring_3
+*/
 inline static void
 set_tss(SegDesc *ptr) {
     tss.ss0 = SELECTOR_KERNEL(SEG_KERNEL_DATA);     // only one ring 0 stack segment
@@ -93,6 +97,7 @@ set_tss(SegDesc *ptr) {
     ptr->base_31_24  = base >> 24;
 }
 
+// 在每次进行上下文切换的时候, 通过set_tss_esp0函数将TSS中的堆栈位置设置成新进程的内核栈
 inline void set_tss_esp0(uint32_t esp) {
     tss.esp0 = esp;
 }
