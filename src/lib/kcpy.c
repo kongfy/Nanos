@@ -8,7 +8,7 @@ uint32_t copy_from_kernel(Thread* pcb, void* dest, void* src, int len)
     int i = 0;
     uint32_t count = 0;
     for (i = 0; i < len; ++i) {
-        char* pdest = (char*)translate_va(pcb, (uint32_t)(dest++));
+        char* pdest = (char*)translate_vaddr(pcb, (uint32_t)(dest++));
         memcpy(pdest, src++, 1);
         count++;
     }
@@ -20,7 +20,7 @@ uint32_t copy_to_kernel(Thread* pcb, void* dest, void* src, int len)
     int i = 0;
     uint32_t count = 0;
     for (i = 0; i < len; ++i) {
-        char* psrc = (char*)translate_va(pcb, (uint32_t)(src++));
+        char* psrc = (char*)translate_vaddr(pcb, (uint32_t)(src++));
         memcpy(dest++, psrc, 1);
         count++;
     }
@@ -32,7 +32,7 @@ uint32_t strcpy_to_kernel(Thread* pcb, char* dest, char* src)
     char *psrc;
     int count = 0;
     do {
-        psrc = (char*)translate_va(pcb, (uint32_t)(src++));
+        psrc = (char*)translate_vaddr(pcb, (uint32_t)(src++));
         memcpy(dest++, psrc, 1);
         count++;
     } while (*psrc != '\0');

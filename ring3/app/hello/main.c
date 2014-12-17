@@ -15,6 +15,8 @@ char *argb = "world";
 
 int main(int argc, char *argv[])
 {
+    printk("here we go...\n");
+
     pid_t pid = fork();
 
     if (0 == pid) {

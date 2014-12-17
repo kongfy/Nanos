@@ -12,6 +12,7 @@
 #include "kernel/sem.h"
 #include "kernel/message.h"
 #include "x86.h"
+#include "memory/mm_types.h"
 
 #define INTR assert(read_eflags() & IF_MASK)
 #define NOINTR assert(~read_eflags() & IF_MASK)
@@ -41,6 +42,10 @@ typedef struct Thread
     Message msgs[NR_MSGS];
 
     list_head runq, semq;
+
+    // 进程内存管理结构，内核进程为NULL
+    mm_struct *mm_struct;
+
     char kstack[STK_SZ];
 } Thread;
 

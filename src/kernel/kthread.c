@@ -63,6 +63,8 @@ Thread *create_kthread(void (*entry)(void))
     thread->status = Ready;
     thread->lock_count = 0;
 
+    thread->mm_struct = NULL; // kernel thread do not own any memory space
+
     uint32_t *exit_addr = (uint32_t *)(thread->kstack + STK_SZ) - 1;
     *exit_addr = (uint32_t)kthread_exit;
 

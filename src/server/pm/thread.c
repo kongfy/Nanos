@@ -17,7 +17,7 @@ static char * argv_buf[NR_ARG];
 
 
 static
-uint32_t init_process_with_elf(Thread *thread, int file_name)
+uint32_t init_with_elf(Thread *thread, int file_name)
 {
     /* read 512 bytes starting from offset 0 from file "0" into buf */
     /* it contains the ELF header and program header table */
@@ -26,11 +26,11 @@ uint32_t init_process_with_elf(Thread *thread, int file_name)
     Message m;
 
     FMMessage *msg = (FMMessage *)&m;
-    m.type = MSG_FM_RW;
+    m.type = MSG_FM_RD;
     msg->file_name = file_name;
-    msg->buf = buf;
     msg->offset = 0;
     msg->len = 512;
+    msg->dest_addr = buf;
     msg->req_pid = current->pid;
 
     send(FM, &m);
@@ -47,7 +47,6 @@ uint32_t init_process_with_elf(Thread *thread, int file_name)
 
     struct ELFHeader *elf;
     struct ProgramHeader *ph, *eph;
-    unsigned char *pa, *i;
 
     elf = (struct ELFHeader*)buf;
 
@@ -59,39 +58,35 @@ uint32_t init_process_with_elf(Thread *thread, int file_name)
 
         MMMessage *mmmsg = (MMMessage *)&m;
 
-        m.type = MSG_MM_ALLOC_PAGES;
+        m.type = MSG_MM_MMAP;
         mmmsg->pid = thread->pid;
         mmmsg->vaddr = ph->vaddr; /* virtual address */
-        mmmsg->memsz = ph->memsz;
+        mmmsg->len = ph->memsz;
 
         send(MM, &m);
         receive(MM, &m);
 
-        pa = (unsigned char *)mmmsg->paddr;
-
         /* read ph->filesz bytes starting from offset ph->off from file "0" into pa */
         FMMessage *fmmsg = (FMMessage *)&m;
-        m.type = MSG_FM_RW;
+        m.type = MSG_FM_RD;
         fmmsg->file_name = file_name;
-        fmmsg->buf = pa;
         fmmsg->offset = ph->off;
         fmmsg->len = ph->filesz;
-        fmmsg->req_pid = current->pid;
+        fmmsg->req_pid = thread->pid;
+        fmmsg->dest_addr = (void *)ph->vaddr;
 
         send(FM, &m);
         receive(FM, &m);
 
         assert(fmmsg->ret == ph->filesz);
-
-        for (i = pa + ph->filesz; i < pa + ph->memsz; *i ++ = 0);
     }
 
     // User stack, only one page (4 KB) memory by default
     // Please be careful!
-    m.type = MSG_MM_ALLOC_PAGES;
+    m.type = MSG_MM_MMAP;
     mmmsg->pid = thread->pid;
     mmmsg->vaddr = KOFFSET - PAGE_SIZE; /* virtual address */
-    mmmsg->memsz = PAGE_SIZE;
+    mmmsg->len = PAGE_SIZE;
 
     send(MM, &m);
     receive(MM, &m);
@@ -159,7 +154,7 @@ void init_stack(Thread *thread, uint32_t entry, char **argv)
 void create_first_process()
 {
     Thread *thread = create_thread();
-    uint32_t entry = init_process_with_elf(thread, 0);
+    uint32_t entry = init_with_elf(thread, 0);
     init_stack(thread, entry, NULL);
     thread_ready(thread);
 }
@@ -191,7 +186,7 @@ void clone_pcb(Thread *parent, Thread *child)
     return;
 }
 
-pid_t fork_process(Thread *thread)
+pid_t do_fork(Thread *thread)
 {
     assert(current->pid == PM);
 
@@ -215,7 +210,7 @@ pid_t fork_process(Thread *thread)
 }
 
 static
-void revoke_vm_process(Thread *thread)
+void mm_exit_mm(Thread *thread)
 {
     Message m;
     MMMessage *msg = (MMMessage *)&m;
@@ -226,7 +221,7 @@ void revoke_vm_process(Thread *thread)
     receive(MM, &m);
 }
 
-int exec_process(Thread *thread, int filename, char *argv[])
+int do_exec(Thread *thread, int filename, char *argv[])
 {
     // copy the argv to kernel buffer
     if (argv) {
@@ -251,7 +246,7 @@ int exec_process(Thread *thread, int filename, char *argv[])
     }
 
     // clean up memeory
-    revoke_vm_process(thread);
+    mm_exit_mm(thread);
 
     // clean up old PCB
     thread->status = Ready;
@@ -259,7 +254,7 @@ int exec_process(Thread *thread, int filename, char *argv[])
     init_sem(&thread->msg_sem, 0);
     thread->msg_head = thread->msg_tail = 0;
 
-    uint32_t entry = init_process_with_elf(thread, filename);
+    uint32_t entry = init_with_elf(thread, filename);
     init_stack(thread, entry, argv_buf);
 
     thread_ready(thread);
@@ -291,7 +286,7 @@ void init_waitpid_structure()
     }
 }
 
-void waitpid_process(Thread *thread, pid_t pid)
+void do_waitpid(Thread *thread, pid_t pid)
 {
     assert(!list_empty(&freeq));
 
@@ -322,12 +317,12 @@ static void wait_notify(pid_t pid, int status)
     }
 }
 
-void exit_process(Thread *thread, int status)
+void do_exit(Thread *thread, int status)
 {
     pid_t pid = thread->pid;
 
     // clean up memeory
-    revoke_vm_process(thread);
+    mm_exit_mm(thread);
     // clean up PCB
     thread_exit(thread);
 

@@ -37,12 +37,12 @@ void fm_server_thread()
             FMMessage *msg = (FMMessage *)&m;
 
             switch (m.type) {
-                case MSG_FM_RW:
+                case MSG_FM_RD:
                     assert(msg->len < NR_BUFF);
 
                     // 先和驱动交互拷贝到内核缓冲区，完成后拷贝至请求进程
                     msg->ret = do_read(msg->file_name, fm_buf, msg->offset, msg->len);
-                    copy_from_kernel(find_tcb_by_pid(m.src), msg->buf, fm_buf, msg->ret);
+                    msg->ret = copy_from_kernel(find_tcb_by_pid(msg->req_pid), msg->dest_addr, fm_buf, msg->ret);
                     send(m.src, &m);
                     break;
                 case MSG_FM_WR:

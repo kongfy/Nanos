@@ -28,31 +28,30 @@ void mm_server_thread()
 
             switch (m.type) {
             case MSG_MM_CREATE_VM: {
-                create_vm(thread);
+                allocate_mm(thread);
                 send(m.src, &m);
                 break;
             }
-            case MSG_MM_ALLOC_PAGES: {
+            case MSG_MM_MMAP: {
                 uint32_t vaddr = msg->vaddr;
-                uint32_t memsz = msg->memsz;
+                uint32_t len = msg->len;
 
-                uint32_t paddr = alloc_pages(thread, vaddr, memsz);
+                do_mmap(thread, vaddr, len);
 
-                msg->paddr = paddr;
                 send(m.src, &m);
                 break;
             }
             case MSG_MM_FORK: {
                 Thread *child = find_tcb_by_pid(msg->child_pid);
 
-                create_vm(child);
-                clone_vm(thread, child);
+                allocate_mm(child);
+                copy_mm(thread, child);
 
                 send(m.src, &m);
                 break;
             }
             case MSG_MM_REVOKE_VM: {
-                revoke_vm(thread);
+                exit_mm(thread);
                 send(m.src, &m);
                 break;
             }

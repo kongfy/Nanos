@@ -12,7 +12,7 @@
 #include "common.h"
 
 #define MSG_MM_CREATE_VM 1
-#define MSG_MM_ALLOC_PAGES 2
+#define MSG_MM_MMAP 2
 #define MSG_MM_FORK 3
 #define MSG_MM_REVOKE_VM 4
 
@@ -23,8 +23,7 @@ typedef struct MMMessage {
     pid_t pid;
     pid_t child_pid; // used in system call : fork
     uint32_t vaddr;
-    uint32_t memsz;
-    uint32_t paddr; // return value
+    uint32_t len;
 } MMMessage;
 
 

@@ -50,6 +50,16 @@ void schedule(void)
     next->status = Running;
     current = next;
 
-    write_cr3(get_cr3(current));
+    if (current->mm_struct) {
+        CR3 cr3;
+        cr3.val = 0;
+        cr3.page_directory_base = ((uint32_t)current->mm_struct->pgd) >> 12;
+
+        write_cr3(&cr3);
+    } else {
+        // kernel thread
+        write_cr3(get_kcr3());
+    }
+
     set_tss_esp0((uint32_t)&current->kstack[STK_SZ]);
 }

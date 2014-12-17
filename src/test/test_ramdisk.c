@@ -21,9 +21,9 @@ void reading()
         Message m;
         FMMessage *msg = (FMMessage *)&m;
 
-        m.type = MSG_FM_RW;
+        m.type = MSG_FM_RD;
         msg->file_name = i;
-        msg->buf = buf;
+        msg->dest_addr = buf;
         msg->offset = 0;
         msg->len = 20;
 
