@@ -68,7 +68,7 @@ Thread *create_kthread(void (*entry)(void))
     uint32_t *exit_addr = (uint32_t *)(thread->kstack + STK_SZ) - 1;
     *exit_addr = (uint32_t)kthread_exit;
 
-    TrapFrame *tf = (TrapFrame *)(exit_addr) - 1;
+    TrapFrame *tf = (TrapFrame *)(exit_addr + 2) - 1;
     tf->eax = tf->ebx = tf->ecx = tf->edx = tf->esi = tf->edi = tf->ebp = tf->esp_ = 0;
     tf->cs = SELECTOR_KERNEL(SEG_KERNEL_CODE);
     tf->eip = (uint32_t)entry;
@@ -191,6 +191,8 @@ Thread *create_thread()
     thread->pid = pid;
     thread->status = Ready;
     thread->lock_count = 0;
+
+    thread->mm_struct = NULL;
 
     // 初始化消息队列信息
     init_sem(&thread->msg_sem, 0);

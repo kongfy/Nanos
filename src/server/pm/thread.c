@@ -160,7 +160,7 @@ void create_first_process()
 }
 
 static
-void clone_pcb(Thread *parent, Thread *child)
+void clone_tcb(Thread *parent, Thread *child)
 {
     memcpy(child->kstack, parent->kstack, STK_SZ);
 
@@ -172,16 +172,11 @@ void clone_pcb(Thread *parent, Thread *child)
         p = (uint32_t *)*p;
     }
 
+    // do not block child precess!!!
     TrapFrame *tf = (TrapFrame *)*(p + 2);
     child->tf = (TrapFrame *)((uint32_t)tf + offset);
-    child->tf->eax = 0;
+    child->tf->eax = 0; // fork() return value for child process
     child->tf->esp_ += offset;
-
-    uint32_t *bp = (uint32_t *)&child->tf->ebp;
-    while (*bp) {
-        *bp += offset;
-        bp = (uint32_t *)*bp;
-    }
 
     return;
 }
@@ -191,8 +186,7 @@ pid_t do_fork(Thread *thread)
     assert(current->pid == PM);
 
     Thread *child = create_thread();
-    clone_pcb(thread, child);
-
+    clone_tcb(thread, child);
 
     // fork memory space for child process
     Message m;

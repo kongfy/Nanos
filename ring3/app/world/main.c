@@ -22,5 +22,16 @@ int main(int argc, char *argv[])
     sleep(5);
     printk("PID %d : wake up!!!\n", pid);
 
+    while (1) {
+        pid = fork();
+
+        if (0 == pid) {
+            pid_t pid = getpid();
+            printk("I'm PID : %d \n", pid);
+        } else {
+            return 0;
+        }
+    }
+
     return -1; // just for waitpid reture value test.
 }

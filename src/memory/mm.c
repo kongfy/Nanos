@@ -14,18 +14,13 @@
 #include "string.h"
 
 // 创建一个存放页表的空间
-#define TOTAL_MAX_PT (32 * (PHY_MEM / PAGE_SIZE / NR_PTE))
+#define TOTAL_MAX_PT (32 * ((PHY_MEM - KMEM) / PAGE_SIZE / NR_PTE))
 
 // 用户进程虚拟内存
 static mm_struct mms[MAX_PROCESS];                                       // 用户进程 mm_struct
 static PDE pdir[MAX_PROCESS][NR_PDE] align_to_page;                      // 用户进程 page directory
 static PTE ptables[TOTAL_MAX_PT][NR_PTE] align_to_page;                  // 用户进程 page tables
 static unsigned char ptmap[TOTAL_MAX_PT / 8];                            // page table bit map
-
-inline PDE* get_pdir(Thread *thread)
-{
-    return pdir[thread->pid];
-}
 
 // 得到一页页表的第一个页表项，注意页表项是连续使用1024个的
 static inline
@@ -58,8 +53,8 @@ void allocate_mm(Thread *thread)
     PDE *kpdir = (PDE *)va_to_pa(get_kpdir());
     for (pdir_idx = 0; pdir_idx < KMEM / PD_SIZE; pdir_idx ++) {
         PDE *kpde = &kpdir[pdir_idx + KOFFSET / PD_SIZE];
-        uint32_t pframe_idx = kpde->page_frame << 12;
-        make_pde(&phy_pdir[pdir_idx + KOFFSET / PD_SIZE], (void*)pframe_idx);
+        uint32_t ptable = kpde->page_frame << 12;
+        make_pde(&phy_pdir[pdir_idx + KOFFSET / PD_SIZE], (void*)ptable);
     }
 
     mms[thread->pid].pgd = phy_pdir;
@@ -68,8 +63,8 @@ void allocate_mm(Thread *thread)
 
 void copy_mm(Thread *parent, Thread *child)
 {
-    PDE *parent_pdir = (PDE *)va_to_pa(get_pdir(parent));
-    PDE *child_pdir = (PDE *)va_to_pa(get_pdir(child));
+    PDE *parent_pdir = (PDE *)va_to_pa(pdir[parent->pid]);
+    PDE *child_pdir = (PDE *)va_to_pa(pdir[child->pid]);
 
     uint32_t pdir_idx, ptable_idx;
 
@@ -101,7 +96,30 @@ void copy_mm(Thread *parent, Thread *child)
 
 void exit_mm(Thread *thread)
 {
-    // TODO : implement me!
+    PDE *phy_pdir = (PDE *)va_to_pa(pdir[thread->pid]);
+
+    uint32_t pdir_idx, ptable_idx;
+    for (pdir_idx = 0; pdir_idx < KOFFSET / PD_SIZE; ++pdir_idx) {
+        PDE *pde = &phy_pdir[pdir_idx];
+        if (pde->present) {
+            PTE *ptable = (PTE *)(pde->page_frame << 12);
+
+            for (ptable_idx = 0; ptable_idx < NR_PTE; ++ptable_idx) {
+                PTE *pte = &ptable[ptable_idx];
+
+                if (pte->present) {
+                    free_page(pte->page_frame << 12);
+
+                    make_invalid_pte(pte);
+                }
+            }
+
+            uint32_t index = ((void *)ptable - va_to_pa(ptables)) / PAGE_SIZE;
+            ptmap[index / 8] &= ~(1 << index % 8);
+
+            make_invalid_pde(pde);
+        }
+    }
 }
 
 void do_mmap(Thread *thread, uint32_t vaddr, uint32_t len)

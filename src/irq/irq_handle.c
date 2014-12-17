@@ -52,9 +52,7 @@ void irq_handle(TrapFrame *tf) {
 
     if (irq < 1000) {
         if (irq == 0x80) {
-            // judge by cs is a better choise, but not now!
-            // if (SELECTOR_KERNEL(SEG_USER_CODE) == tf->cs) {
-            if (Running == current->status) {
+            if (SELECTOR_USER(SEG_USER_CODE) == tf->cs) {
                 // system call
                 uint32_t ret = do_syscall(tf->eax,
                                           tf->ebx,

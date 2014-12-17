@@ -12,3 +12,4 @@ boot/bootblock
 .project
 cscope.*
 *.udb
+.DS_Store
