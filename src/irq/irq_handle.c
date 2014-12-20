@@ -3,7 +3,7 @@
 #include "kernel.h"
 #include "common.h"
 #include "syscall.h"
-
+#include "server/pm.h"
 
 #define NR_IRQ_HANDLE 32
 
@@ -63,6 +63,10 @@ void irq_handle(TrapFrame *tf) {
                 // force schedule
                 need_sched = TRUE;
             }
+        } else if (SELECTOR_USER(SEG_USER_CODE) == tf->cs) {
+            // user mode exception
+            kill_thread(current, irq);
+            need_sched = TRUE;
         } else {
             panic("Unexpected exception #%d\n\33[1;31mHint: The machine is always right! For more details about exception #%d, see\n%s\n\33[0m", irq, irq, logo_i386);
         }

@@ -29,7 +29,9 @@ int main(int argc, char *argv[])
             pid_t pid = getpid();
             printk("I'm PID : %d \n", pid);
         } else {
-            return 0;
+            // divide zero
+            int zero = 0;
+            return 10 / zero;
         }
     }
 

@@ -54,6 +54,14 @@ void pm_server_thread()
                 do_exit(thread, msg->status);
                 break;
             }
+            case MSG_PM_KILL : {
+                thread = find_tcb_by_pid(msg->pid);
+                do_exit(thread, msg->status);
+                if (m.src != msg->pid) {
+                    send(m.src, &m);
+                }
+                break;
+            }
 
             }
         }
