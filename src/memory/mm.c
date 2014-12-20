@@ -73,21 +73,21 @@ void copy_mm(Thread *parent, Thread *child)
         PDE *child_pde = &child_pdir[pdir_idx];
 
         if (parent_pde->val) {
-            PTE *child_ptes = (PTE*)va_to_pa(get_free_ptable());
-            make_pde(child_pde, child_ptes);
+            PTE *child_ptable = (PTE*)va_to_pa(get_free_ptable());
+            make_pde(child_pde, child_ptable);
 
-            PTE *parent_ptes = (PTE*)(parent_pde->page_frame << 12);
+            PTE *parent_ptable = (PTE*)(parent_pde->page_frame << 12);
             for (ptable_idx = 0; ptable_idx < NR_PTE; ptable_idx ++) {
-                PTE *parent_ptable = &parent_ptes[ptable_idx];
-                PTE *child_ptable = &child_ptes[ptable_idx];
+                PTE *parent_pte = &parent_ptable[ptable_idx];
+                PTE *child_pte = &child_ptable[ptable_idx];
 
-                if (parent_ptable->present) {
+                if (parent_pte->present) {
                     // alloc one page for child process
                     uint32_t pa = get_free_page();
-                    make_pte(child_ptable, (void *)pa);
+                    make_pte(child_pte, (void *)pa);
 
                     // copy physical memory
-                    memcpy((void *)pa, (void *)(parent_ptable->page_frame << 12), PAGE_SIZE);
+                    memcpy((void *)pa, (void *)(parent_pte->page_frame << 12), PAGE_SIZE);
                 }
             }
         }
