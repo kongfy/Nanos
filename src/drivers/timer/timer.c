@@ -3,7 +3,7 @@
 #include "string.h"
 
 #include "drivers/time.h"
-#include "drivers/hal.h"
+#include "hal.h"
 
 
 pid_t TIME;
@@ -17,6 +17,8 @@ void init_i8253(void);
 void update_sched(void);
 void update_jiffy(void);
 int read_rtc(int);
+
+void update_alarm(void);
 
 void init_timer(void) {
     init_i8253();
@@ -56,8 +58,10 @@ void update_jiffy(void) {
         if (rt.second >= 60) { rt.second = 0; rt.minute ++; }
         if (rt.minute >= 60) { rt.minute = 0; rt.hour ++; }
         if (rt.hour >= 24)   { rt.hour = 0;   rt.day ++;}
-        if (rt.day >= md(rt.year, rt.month)) { rt.day = 1; rt.month ++; } 
+        if (rt.day >= md(rt.year, rt.month)) { rt.day = 1; rt.month ++; }
         if (rt.month >= 13)  { rt.month = 1;  rt.year ++; }
+
+        update_alarm(); // notify alarm with 1 sec
     }
 }
 

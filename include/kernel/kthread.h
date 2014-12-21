@@ -12,6 +12,7 @@
 #include "kernel/sem.h"
 #include "kernel/message.h"
 #include "x86.h"
+#include "memory/mm_types.h"
 
 #define INTR assert(read_eflags() & IF_MASK)
 #define NOINTR assert(~read_eflags() & IF_MASK)
@@ -41,6 +42,10 @@ typedef struct Thread
     Message msgs[NR_MSGS];
 
     list_head runq, semq;
+
+    // 进程内存管理结构，内核进程为NULL
+    mm_struct *mm_struct;
+
     char kstack[STK_SZ];
 } Thread;
 
@@ -67,5 +72,12 @@ void wakeup(Thread *t);
 // 短临界区保护，实现关中断保护的原子操作
 void lock(void);
 void unlock(void);
+
+/* <========================= 给用户进程的数据接口，提供给PM使用 ==========================> */
+
+// 获取一个PCB结构，供PM使用，必须自行负责销毁
+Thread *create_thread();
+inline void thread_exit(Thread *Thread);
+inline void thread_ready(Thread *thread); // 使进程进入就绪队列
 
 #endif /* __KERNEL_KTHREAD_H__ */

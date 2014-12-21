@@ -10,7 +10,7 @@
 
 #include "common.h"
 #include "kernel.h"
-#include "drivers/hal.h"
+#include "hal.h"
 
 struct Console {
     const char *name;

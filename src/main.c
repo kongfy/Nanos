@@ -2,20 +2,12 @@
 #include "x86.h"
 #include "device.h"
 #include "drivers.h"
+#include "server.h"
 #include "kernel.h"
 #include "stdio.h"
 #include "memory.h"
 
 #include "test.h"
-
-void keyboard_irq(void)
-{
-    uint32_t code = in_byte(0x60);
-    uint32_t val = in_byte(0x61);
-    out_byte(0x61, val | 0x80);
-    out_byte(0x61, val);
-    printf("%d\n", code);
-}
 
 void init_kernel(void);
 
@@ -53,6 +45,11 @@ init_kernel(void) {
 
     // drivers
     init_drivers();
+
+    // servers
+    init_pm();
+    init_mm();
+    init_fm();
 
     enable_interrupt();
     while (1) {

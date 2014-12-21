@@ -13,7 +13,8 @@
 static pid_t max_pid = 0;
 static uint32_t pid_map[MAP_LENGTH];
 
-void set_map(pid_t pid)
+static void
+set_map(pid_t pid)
 {
     int index = pid / 32;
     int reminder = pid % 32;
@@ -21,6 +22,7 @@ void set_map(pid_t pid)
     pid_map[index] |= 1 << reminder;
 }
 
+static inline
 void clear_map(pid_t pid)
 {
     int index = pid / 32;
@@ -41,27 +43,33 @@ bool is_pid_available(pid_t pid)
     }
 }
 
-pid_t min_available_pid(void)
+static inline
+pid_t next_available_pid(pid_t last)
 {
     int pid;
 
-    for (pid = 0; pid <= MAX_PID; ++pid) {
+    for (pid = last + 1; pid <= MAX_PID; ++pid) {
         if (is_pid_available(pid)) {
             return pid;
         }
     }
+
+    for (pid = 0; pid <= last; ++pid) {
+        if (is_pid_available(pid)) {
+            return pid;
+        }
+    }
+
     return -1;
 }
 
 pid_t get_free_pid(void)
 {
-    if (max_pid <= MAX_PID) {
-        set_map(max_pid);
-        return max_pid++;
-    }
+    static pid_t last = -1;
 
-    pid_t pid = min_available_pid();
+    pid_t pid = next_available_pid(last);
     if (pid >= 0) {
+        last = pid;
         set_map(pid);
         return pid;
     }

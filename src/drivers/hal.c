@@ -1,5 +1,4 @@
-#include "drivers/hal.h"
-
+#include "hal.h"
 #include "kernel.h"
 #include "string.h"
 #include "common.h"

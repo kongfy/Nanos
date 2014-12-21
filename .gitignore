@@ -10,3 +10,6 @@
 boot/bootblock
 .cproject
 .project
+cscope.*
+*.udb
+.DS_Store

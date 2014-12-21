@@ -63,10 +63,12 @@ Thread *create_kthread(void (*entry)(void))
     thread->status = Ready;
     thread->lock_count = 0;
 
+    thread->mm_struct = NULL; // kernel thread do not own any memory space
+
     uint32_t *exit_addr = (uint32_t *)(thread->kstack + STK_SZ) - 1;
     *exit_addr = (uint32_t)kthread_exit;
 
-    TrapFrame *tf = (TrapFrame *)(exit_addr) - 1;
+    TrapFrame *tf = (TrapFrame *)(exit_addr + 2) - 1;
     tf->eax = tf->ebx = tf->ecx = tf->edx = tf->esi = tf->edi = tf->ebp = tf->esp_ = 0;
     tf->cs = SELECTOR_KERNEL(SEG_KERNEL_CODE);
     tf->eip = (uint32_t)entry;
@@ -171,3 +173,52 @@ Thread *find_tcb_by_pid(pid_t pid)
     return &tcbs[pid];
 }
 
+/* <========================= 给用户进程的数据接口，提供给PM使用 ==========================> */
+
+// 获取一个PCB结构，供PM使用，必须自行负责销毁
+Thread *create_thread()
+{
+    lock();
+    pid_t pid = get_free_pid();
+    unlock();
+
+    if (pid < 0) {
+        printf("too many threads!\n");
+        return NULL;
+    }
+
+    Thread *thread = &tcbs[pid];
+    thread->pid = pid;
+    thread->status = Ready;
+    thread->lock_count = 0;
+
+    thread->mm_struct = NULL;
+
+    // 初始化消息队列信息
+    init_sem(&thread->msg_sem, 0);
+    thread->msg_head = thread->msg_tail = 0;
+
+    return thread;
+}
+
+inline void thread_exit(Thread *thread)
+{
+    // 释放资源
+    lock();
+
+    list_del(&thread->runq);
+    free_pid(thread->pid);
+    thread->status = Exit;
+
+    unlock();
+}
+
+inline void thread_ready(Thread *thread)
+{
+    thread->status = Ready;
+
+    lock();
+    list_del(&thread->runq);
+    list_add_tail(&thread->runq, &queue.ready_queue);
+    unlock();
+}

@@ -25,7 +25,6 @@
 
 .globl irq0;     irq0:  pushl $0;  pushl $1000; jmp asm_do_irq
 .globl irq1;     irq1:  pushl $0;  pushl $1001; jmp asm_do_irq
-.globl irq14;   irq14:  pushl $0;  pushl $1014; jmp asm_do_irq
 .globl irq_empty; irq_empty:pushl $0;pushl $-1; jmp asm_do_irq
 
 # ！调用C编写的中断处理程序(见irq/irq_handle.c)！
@@ -47,6 +46,8 @@ asm_do_irq:
     movl (current), %eax
     movl (%eax), %esp # 将esp置为current->tf
 
+    # During popal intruction, The ESP value is discarded instead of loaded into ESP
+    # http://www.fermimn.gov.it/linux/quarta/x86/popa.htm
     popal
     popl %gs; popl %fs; popl %es; popl %ds
     addl $8, %esp

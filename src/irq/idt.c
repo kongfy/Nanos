@@ -49,6 +49,7 @@ void vec10();
 void vec11();
 void vec12();
 void vec13();
+void vec14();
 
 void vecsys();
 
@@ -76,15 +77,15 @@ void init_idt() {
     set_trap(idt + 11, SEG_KERNEL_CODE, (uint32_t)vec11, DPL_KERNEL);
     set_trap(idt + 12, SEG_KERNEL_CODE, (uint32_t)vec12, DPL_KERNEL);
     set_trap(idt + 13, SEG_KERNEL_CODE, (uint32_t)vec13, DPL_KERNEL);
+    set_trap(idt + 14, SEG_KERNEL_CODE, (uint32_t)vec14, DPL_KERNEL);
 
     /* the system call 0x80 */
-    set_trap(idt + 0x80, SEG_KERNEL_CODE, (uint32_t)vecsys, DPL_KERNEL);
+    set_trap(idt + 0x80, SEG_KERNEL_CODE, (uint32_t)vecsys, DPL_USER);
 
     /* 设置外部中断的处理 */
     // irq0增加了32的offset,参见 http://en.wikibooks.org/wiki/X86_Assembly/Programmable_Interrupt_Controller
-    set_intr(idt + 32, SEG_KERNEL_CODE, (uint32_t)irq0, DPL_KERNEL);
-    set_intr(idt + 33, SEG_KERNEL_CODE, (uint32_t)irq1, DPL_KERNEL);
-
+    set_intr(idt + 0 + 32, SEG_KERNEL_CODE, (uint32_t)irq0, DPL_KERNEL);
+    set_intr(idt + 1 + 32, SEG_KERNEL_CODE, (uint32_t)irq1, DPL_KERNEL);
     /* 写入IDT */
     write_idtr(idt, sizeof(idt));
 }

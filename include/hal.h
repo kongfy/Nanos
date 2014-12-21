@@ -1,16 +1,11 @@
-#ifndef __DRIVERS_HAL_H__
-#define __DRIVERS_HAL_H__
+#ifndef __HAL_H__
+#define __HAL_H__
 
 #define MSG_DEVRD  1
 #define MSG_DEVWR  2
 
-#include "kernel/list.h"
+#include "kernel.h"
 #include "common.h"
-
-typedef struct MsgHead {
-    int type; // 消息的类型
-    pid_t src, dest; // 消息发送者和接收者的pid
-} MsgHead;
 
 struct DevMessage {
     MsgHead header; // header与Message的头部定义保持一致即可(src, dst, type)
@@ -19,7 +14,7 @@ struct DevMessage {
     off_t offset;
     void *buf;
     size_t len;
-    int ret;
+    size_t ret;
 };
 typedef struct DevMessage DevMessage;
 

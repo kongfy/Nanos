@@ -1,6 +1,6 @@
 #include "kernel.h"
+#include "hal.h"
 #include "drivers/tty.h"
-#include "drivers/hal.h"
 
 void
 ttyd(void) {
@@ -9,6 +9,7 @@ ttyd(void) {
     while (1) {
         receive(ANY, &m);
         if (m.src == MSG_HWINTR) {
+            // 中断下半段
             switch (m.type) {
                 case MSG_TTY_GETKEY:
                     readkey();

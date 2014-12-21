@@ -27,7 +27,7 @@ display_message(const char *file, int line) {
     }
 }
 
-int
+void
 abort(const char *fname, int line) {
     disable_interrupt();
     display_message(fname, line);

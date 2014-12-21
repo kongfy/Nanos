@@ -23,11 +23,11 @@ make_pde(PDE *p, void *addr) {
 }
 
 void
-make_pte(PTE *p, void *addr) {
+make_pte(PTE *p, void *addr, uint32_t read_write, uint32_t user_supervisor) {
     p->val = 0;
     p->page_frame = ((uint32_t)addr) >> 12;
     p->present = 1;
-    p->read_write = 1;
-    p->user_supervisor = 1;
+    p->read_write = read_write;
+    p->user_supervisor = user_supervisor;
 }
 
