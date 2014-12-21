@@ -24,6 +24,7 @@ typedef struct MMMessage {
     pid_t child_pid; // used in system call : fork
     uint32_t vaddr;
     uint32_t len;
+    uint32_t read_write;
 } MMMessage;
 
 

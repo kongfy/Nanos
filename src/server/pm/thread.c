@@ -2,7 +2,6 @@
 #include "server.h"
 #include "memory.h"
 
-
 #include "string.h"
 #include "hal.h"
 #include "elf.h"
@@ -55,13 +54,13 @@ uint32_t init_with_elf(Thread *thread, int file_name)
     eph = ph + elf->phnum;
     for(; ph < eph; ph ++) {
         /* allocate pages starting from va, with memory size no less than ph->memsz */
-
         MMMessage *mmmsg = (MMMessage *)&m;
 
         m.type = MSG_MM_MMAP;
         mmmsg->pid = thread->pid;
         mmmsg->vaddr = ph->vaddr; /* virtual address */
         mmmsg->len = ph->memsz;
+        mmmsg->read_write = (ph->flags & PF_W) ? 1 : 0;
 
         send(MM, &m);
         receive(MM, &m);
@@ -87,6 +86,7 @@ uint32_t init_with_elf(Thread *thread, int file_name)
     mmmsg->pid = thread->pid;
     mmmsg->vaddr = KOFFSET - PAGE_SIZE; /* virtual address */
     mmmsg->len = PAGE_SIZE;
+    mmmsg->read_write = 1; // stack pages are always writeable.
 
     send(MM, &m);
     receive(MM, &m);
@@ -106,7 +106,7 @@ void init_stack(Thread *thread, uint32_t entry, char **argv)
         uint32_t total_len = 0;
         int32_t argc = 0;
 
-        char **p = argv_buf;
+        char **p = argv;
         while (*p) {
             argc++;
             total_len += strlen(*p) + 1;
@@ -120,7 +120,7 @@ void init_stack(Thread *thread, uint32_t entry, char **argv)
         char *temp = (char *)top;
         int i = 0;
         for (i = argc - 1; i >= 0; --i) {
-            temp -= strlen(argv_buf[i]) + 1;
+            temp -= strlen(argv[i]) + 1;
             argvs -= 1;
             *argvs = (void *)temp + offset;
         }
@@ -130,6 +130,14 @@ void init_stack(Thread *thread, uint32_t entry, char **argv)
 
         int32_t *argc_position = (int32_t *)argv_position - 1;
         *argc_position = argc;
+
+        top = argc_position - 1; // leave the space for return EIP
+    } else {
+        char ***argv_position = (char ***)top - 1;
+        *argv_position = NULL;
+
+        int32_t *argc_position = (int32_t *)argv_position - 1;
+        *argc_position = 0;
 
         top = argc_position - 1; // leave the space for return EIP
     }

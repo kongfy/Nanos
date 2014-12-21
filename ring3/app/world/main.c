@@ -29,9 +29,19 @@ int main(int argc, char *argv[])
             pid_t pid = getpid();
             printk("I'm PID : %d \n", pid);
         } else {
-            // divide zero
-            int zero = 0;
-            return 10 / zero;
+            if (pid % 3 == 0) {
+                // divide zero
+                int zero = 0;
+                return 10 / zero;
+            } else if (pid % 3 == 1) {
+                // access kernel space
+                void *addr = (void *)0xc0008000;
+                *(int *)addr = 0;
+            } else if (pid % 3 == 2) {
+                // write code segment
+                void *addr = (void *)main;
+                * (int *)addr = 0;
+            }
         }
     }
 

@@ -48,7 +48,7 @@ init_page(void) {
         make_pde(&pdir[pdir_idx], ptable);
         make_pde(&pdir[pdir_idx + KOFFSET / PD_SIZE], ptable);
         for (ptable_idx = 0; ptable_idx < NR_PTE; ptable_idx ++) {
-            make_pte(ptable, (void*)(pframe_idx << 12));
+            make_pte(ptable, (void*)(pframe_idx << 12), 1, 0);
             pframe_idx ++;
             ptable ++;
         }

@@ -49,6 +49,7 @@ void vec10();
 void vec11();
 void vec12();
 void vec13();
+void vec14();
 
 void vecsys();
 
@@ -76,6 +77,7 @@ void init_idt() {
     set_trap(idt + 11, SEG_KERNEL_CODE, (uint32_t)vec11, DPL_KERNEL);
     set_trap(idt + 12, SEG_KERNEL_CODE, (uint32_t)vec12, DPL_KERNEL);
     set_trap(idt + 13, SEG_KERNEL_CODE, (uint32_t)vec13, DPL_KERNEL);
+    set_trap(idt + 14, SEG_KERNEL_CODE, (uint32_t)vec14, DPL_KERNEL);
 
     /* the system call 0x80 */
     set_trap(idt + 0x80, SEG_KERNEL_CODE, (uint32_t)vecsys, DPL_USER);

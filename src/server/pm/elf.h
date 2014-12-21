@@ -32,4 +32,13 @@ struct ProgramHeader {
     unsigned int align;
 };
 
+// System V ABI
+// http://www.sco.com/developers/gabi/latest/ch5.pheader.html#p_flags
+#define PF_X 0x1
+#define PF_W 0x2
+#define PF_R 0x4
+#define PF_MASKOS 0x0ff00000
+#define PF_MASKPROC 0xf0000000
+
+
 #endif /* __ELF_H__ */

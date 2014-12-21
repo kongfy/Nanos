@@ -7,7 +7,7 @@ void allocate_mm(Thread *thread);
 void exit_mm(Thread *Thread);
 void copy_mm(Thread *parent, Thread *child);
 
-void do_mmap(Thread *thread, uint32_t vaddr, uint32_t len);
+void do_mmap(Thread *thread, uint32_t vaddr, uint32_t len, uint32_t read_write);
 uint32_t translate_vaddr(Thread *thread, uint32_t vaddr);
 
 inline PDE* get_pdir(Thread *thread);

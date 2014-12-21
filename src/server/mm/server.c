@@ -35,8 +35,9 @@ void mm_server_thread()
             case MSG_MM_MMAP: {
                 uint32_t vaddr = msg->vaddr;
                 uint32_t len = msg->len;
+                uint32_t read_write = msg->read_write;
 
-                do_mmap(thread, vaddr, len);
+                do_mmap(thread, vaddr, len, read_write);
 
                 send(m.src, &m);
                 break;

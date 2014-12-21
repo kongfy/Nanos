@@ -84,7 +84,7 @@ void copy_mm(Thread *parent, Thread *child)
                 if (parent_pte->present) {
                     // alloc one page for child process
                     uint32_t pa = get_free_page();
-                    make_pte(child_pte, (void *)pa);
+                    make_pte(child_pte, (void *)pa, parent_pte->read_write, parent_pte->user_supervisor);
 
                     // copy physical memory
                     memcpy((void *)pa, (void *)(parent_pte->page_frame << 12), PAGE_SIZE);
@@ -122,7 +122,7 @@ void exit_mm(Thread *thread)
     }
 }
 
-void do_mmap(Thread *thread, uint32_t vaddr, uint32_t len)
+void do_mmap(Thread *thread, uint32_t vaddr, uint32_t len, uint32_t read_write)
 {
     uint32_t taddr = vaddr >> 12 << 12;
     while (taddr < vaddr + len) {
@@ -145,7 +145,7 @@ void do_mmap(Thread *thread, uint32_t vaddr, uint32_t len)
 
         if (!pte->present) {
             uint32_t paddr = get_free_page();
-            make_pte(pte, (void *)paddr);
+            make_pte(pte, (void *)paddr, read_write, 1);
         }
 
         taddr += PAGE_SIZE;
