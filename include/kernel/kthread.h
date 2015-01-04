@@ -13,6 +13,7 @@
 #include "kernel/message.h"
 #include "x86.h"
 #include "memory/mm_types.h"
+#include "fsys/fs_types.h"
 
 #define INTR assert(read_eflags() & IF_MASK)
 #define NOINTR assert(~read_eflags() & IF_MASK)
@@ -45,6 +46,8 @@ typedef struct Thread
 
     // 进程内存管理结构，内核进程为NULL
     mm_struct *mm_struct;
+    // file management
+    fm_struct *fm_struct;
 
     char kstack[STK_SZ];
 } Thread;

@@ -5,19 +5,20 @@
 
 uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arg3);
 
-// use kernel's printf function, debug only!
-#define SYS_PRINTK 0
-// get process pid
-#define SYS_GETPID 1
-// fork
-#define SYS_FORK 2
-// exec
-#define SYS_EXEC 3
-// exit
-#define SYS_EXIT 4
-// waitpid
+#define SYS_PRINTK  0
+#define SYS_GETPID  1
+#define SYS_FORK    2
+#define SYS_EXEC    3
+#define SYS_EXIT    4
 #define SYS_WAITPID 5
-// sleep
-#define SYS_SLEEP 6
+#define SYS_SLEEP   6
+#define SYS_OPEN   10
+#define SYS_LSEEK  11
+#define SYS_CLOSE  12
+#define SYS_DUP    13
+#define SYS_DUP2   14
+#define SYS_PIPE   15
+#define SYS_READ   16
+#define SYS_WRITE  17
 
 #endif /* __SYSCALL_H__ */

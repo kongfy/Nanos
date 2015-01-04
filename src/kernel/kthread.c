@@ -64,6 +64,7 @@ Thread *create_kthread(void (*entry)(void))
     thread->lock_count = 0;
 
     thread->mm_struct = NULL; // kernel thread do not own any memory space
+    thread->fm_struct = NULL;
 
     uint32_t *exit_addr = (uint32_t *)(thread->kstack + STK_SZ) - 1;
     *exit_addr = (uint32_t)kthread_exit;
@@ -193,6 +194,7 @@ Thread *create_thread()
     thread->lock_count = 0;
 
     thread->mm_struct = NULL;
+    thread->fm_struct = NULL;
 
     // 初始化消息队列信息
     init_sem(&thread->msg_sem, 0);

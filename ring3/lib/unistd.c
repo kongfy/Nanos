@@ -31,3 +31,43 @@ void exit(int status)
 {
     syscall(SYS_EXIT, status);
 }
+
+int open(int filename)
+{
+    return syscall(SYS_OPEN, filename);
+}
+
+int lseek(int fd, int offset, int whence)
+{
+    return syscall(SYS_LSEEK, offset, whence);
+}
+
+int close(int fd)
+{
+    return syscall(SYS_CLOSE, fd);
+}
+
+int dup(int oldfd)
+{
+    return syscall(SYS_DUP, oldfd);
+}
+
+int dup2(int oldfd, int newfd)
+{
+    return syscall(SYS_DUP2, oldfd, newfd);
+}
+
+int pipe(int pipefd[2])
+{
+    return syscall(SYS_PIPE, pipefd);
+}
+
+int read(int fd, uint8_t *buf, int len)
+{
+    return syscall(SYS_READ, buf, len);
+}
+
+int write(int fd, uint8_t *buf, int len)
+{
+    return syscall(SYS_WRITE, buf, len);
+}

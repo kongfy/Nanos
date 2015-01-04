@@ -8,6 +8,15 @@ int32_t sys_waitpid(pid_t pid);
 uint32_t sys_sleep(uint32_t seconds);
 void sys_exit(int status);
 
+int sys_open(int filename);
+int sys_lseek(int fd, int offset, int whence);
+int sys_close(int fd);
+int sys_dup(int oldfd);
+int sys_dup2(int oldfd, int newfd);
+int sys_pipe(int pipefd[2]);
+int sys_read(int fd, uint8_t *buf, int len);
+int sys_write(int fd, uint8_t *buf, int len);
+
 uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arb3)
 {
     switch (id) {
@@ -31,6 +40,22 @@ uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arb3)
         break;
     case SYS_SLEEP:
         return sys_sleep(arg1);
+        break;
+    case SYS_OPEN:
+        break;
+    case SYS_LSEEK:
+        break;
+    case SYS_CLOSE:
+        break;
+    case SYS_DUP:
+        break;
+    case SYS_DUP2:
+        break;
+    case SYS_PIPE:
+        break;
+    case SYS_READ:
+        break;
+    case SYS_WRITE:
         break;
     default:
         panic("Undefined system call!\n");
