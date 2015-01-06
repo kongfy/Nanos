@@ -5,6 +5,7 @@
 #include "string.h"
 #include "hal.h"
 #include "elf.h"
+#include "drivers/tty.h"
 
 
 #define MAX_ARG_LEN 128
@@ -159,12 +160,26 @@ void init_stack(Thread *thread, uint32_t entry, char **argv)
     thread->tf = tf;
 }
 
-void create_first_process()
+void create_shells()
 {
-    Thread *thread = create_thread();
-    uint32_t entry = init_with_elf(thread, 0);
-    init_stack(thread, entry, NULL);
-    thread_ready(thread);
+    int i;
+    for (i = 1; i <= NR_TTY; ++i) {
+        Thread *thread = create_thread();
+        uint32_t entry = init_with_elf(thread, 2);
+        init_stack(thread, entry, NULL);
+
+        // initialize with fm
+        Message m;
+        FMMessage *msg = (FMMessage *)&m;
+        m.type = MSG_FM_INIT;
+        msg->req_pid = thread->pid;
+        msg->tty = i;
+
+        send(FM, &m);
+        receive(FM, &m);
+
+        thread_ready(thread);
+    }
 }
 
 static
@@ -202,9 +217,16 @@ pid_t do_fork(Thread *thread)
     m.type = MSG_MM_FORK;
     msg->pid = thread->pid;
     msg->child_pid = child->pid;
-
     send(MM, &m);
     receive(MM, &m);
+
+    // copy with fm
+    FMMessage *fmsg = (FMMessage *)&m;
+    m.type = MSG_FM_COPY;
+    fmsg->req_pid = thread->pid;
+    fmsg->child_pid = child->pid;
+    send(FM, &m);
+    receive(FM, &m);
 
     thread_ready(child);
 
@@ -325,6 +347,15 @@ void do_exit(Thread *thread, int status)
 
     // clean up memeory
     mm_exit_mm(thread);
+
+    // exit with fm
+    Message m;
+    FMMessage *msg = (FMMessage *)&m;
+    m.type = MSG_FM_EXIT;
+    msg->req_pid = thread->pid;
+    send(FM, &m);
+    receive(FM, &m);
+
     // clean up PCB
     thread_exit(thread);
 

@@ -10,19 +10,7 @@
 
 #include "drivers/ramdisk.h"
 #include "server/fm.h"
-
-#define NR_BUFF 4096
-
-static uint8_t fm_buf[NR_BUFF];
-
-static size_t
-do_read(int file_name, uint8_t *buf, off_t offset, size_t len)
-{
-    Device *dev = hal_get("ram");
-
-    offset += file_name * NR_FILE_SIZE;
-    return dev_read(dev, current->pid, offset, buf, len);
-}
+#include "fsys.h"
 
 // FM服务器线程
 void fm_server_thread()
@@ -35,18 +23,41 @@ void fm_server_thread()
         if (m.src == MSG_HWINTR) {
         } else {
             FMMessage *msg = (FMMessage *)&m;
+            Thread *thread = find_tcb_by_pid(msg->req_pid);
 
             switch (m.type) {
-                case MSG_FM_RD:
-                    assert(msg->len < NR_BUFF);
-
-                    // 先和驱动交互拷贝到内核缓冲区，完成后拷贝至请求进程
-                    msg->ret = do_read(msg->file_name, fm_buf, msg->offset, msg->len);
-                    msg->ret = copy_from_kernel(find_tcb_by_pid(msg->req_pid), msg->dest_addr, fm_buf, msg->ret);
-                    send(m.src, &m);
-                    break;
-                case MSG_FM_WR:
-                    break;
+            case MSG_FM_RD:
+                msg->ret = ram_read(msg->file_name, msg->dest_addr, msg->offset, msg->len, thread);
+                send(m.src, &m);
+                break;
+            case MSG_FM_WR:
+                break;
+            case MSG_FM_INIT: {
+                init_fm_tty(thread, msg->tty);
+                send(m.src, &m);
+                break;
+            }
+            case MSG_FM_COPY: {
+                Thread *child = find_tcb_by_pid(msg->child_pid);
+                copy_fm(thread, child);
+                send(m.src, &m);
+                break;
+            }
+            case MSG_FM_EXIT: {
+                exit_fm(thread);
+                send(m.src, &m);
+                break;
+            }
+            case MSG_FM_READ: {
+                msg->ret = do_read(thread, msg->fd1, (uint8_t *)msg->buf, msg->len);
+                send(m.src, &m);
+                break;
+            }
+            case MSG_FM_WRITE: {
+                msg->ret = do_write(thread, msg->fd1, (uint8_t *)msg->buf, msg->len);
+                send(m.src, &m);
+                break;
+            }
             }
         }
     }

@@ -3,5 +3,6 @@
 
 #include "programs/hello.h"
 #include "programs/world.h"
+#include "programs/ksh.h"
 
 #endif /* __PROGRAMS_H__ */

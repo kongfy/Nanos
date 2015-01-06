@@ -11,7 +11,7 @@
 #include "hal.h"
 #include "elf.h"
 
-void create_first_process();
+void create_shells();
 pid_t do_fork(Thread *thread);
 int do_exec(Thread *thread, int filename, char *argv[]);
 void do_waitpid(Thread *thread, pid_t pid);
@@ -20,7 +20,7 @@ void do_exit(Thread *thread, int status);
 // PM服务器线程
 void pm_server_thread()
 {
-    create_first_process();
+    create_shells();
 
     Message m;
 

@@ -17,7 +17,7 @@ int sys_pipe(int pipefd[2]);
 int sys_read(int fd, uint8_t *buf, int len);
 int sys_write(int fd, uint8_t *buf, int len);
 
-uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arb3)
+uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arg3)
 {
     switch (id) {
     case SYS_PRINTK:
@@ -54,8 +54,10 @@ uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arb3)
     case SYS_PIPE:
         break;
     case SYS_READ:
+        return sys_read(arg1, (uint8_t *)arg2, arg3);
         break;
     case SYS_WRITE:
+        return sys_write(arg1, (uint8_t *)arg2, arg3);
         break;
     default:
         panic("Undefined system call!\n");

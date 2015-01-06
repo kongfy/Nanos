@@ -27,9 +27,11 @@ ttyd(void) {
                 case MSG_DEVWR:
                     msg = (DevMessage*)&m;
                     if (msg->dev_id >= 0 && msg->dev_id < NR_TTY) {
+                        char c;
                         int i;
                         for (i = 0; i < msg->len; i ++) {
-                            consl_writec(&ttys[msg->dev_id], ((char*)msg->buf)[i]);
+                            copy_to_kernel(find_tcb_by_pid(msg->req_pid), &c, (char*)msg->buf + i, 1);
+                            consl_writec(&ttys[msg->dev_id], c);
                         }
                         consl_sync(&ttys[msg->dev_id]);
                     }

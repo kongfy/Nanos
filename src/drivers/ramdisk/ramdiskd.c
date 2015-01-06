@@ -27,6 +27,10 @@ void ramdisk_setup(void)
     for (i = 0; i < world_len; i++) {
         file[1][i] = world[i];
     }
+
+    for (i = 0; i < ksh_len; i++) {
+        file[2][i] = ksh[i];
+    }
 }
 
 // zero, 读取该设备会返回指定长度的'\0'字符(即值为0的字节), 写入该设备时数据将会被丢弃

@@ -14,6 +14,10 @@
 #define MSG_FM_RD 1
 #define MSG_FM_WR 2
 
+#define MSG_FM_INIT    5
+#define MSG_FM_COPY    6
+#define MSG_FM_EXIT    7
+
 #define MSG_FM_OPEN   10
 #define MSG_FM_LSEEK  11
 #define MSG_FM_CLOSE  12
@@ -33,7 +37,9 @@ typedef struct FMMessage {
     size_t len;
     uint32_t pipefd;
     pid_t req_pid;
+    pid_t child_pid;
     void *dest_addr;
+    int tty;
     unsigned int ret;
 } FMMessage;
 

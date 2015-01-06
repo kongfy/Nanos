@@ -4,8 +4,9 @@
 #define MSG_DEVRD  1
 #define MSG_DEVWR  2
 
-#include "kernel.h"
 #include "common.h"
+#include "kernel/list.h"
+#include "kernel/message.h"
 
 struct DevMessage {
     MsgHead header; // header与Message的头部定义保持一致即可(src, dst, type)

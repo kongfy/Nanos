@@ -6,6 +6,7 @@ int sys_open(int filename)
     Message m;
     FMMessage *msg = (FMMessage *)&m;
     msg->header.type = MSG_FM_OPEN;
+    msg->req_pid = current->pid;
     msg->file_name = filename;
 
     send(FM, &m);
@@ -19,6 +20,7 @@ int sys_lseek(int fd, int offset, int whence)
     Message m;
     FMMessage *msg = (FMMessage *)&m;
     msg->header.type = MSG_FM_LSEEK;
+    msg->req_pid = current->pid;
     msg->fd1 = fd;
     msg->offset = offset;
     msg->whence = whence;
@@ -34,6 +36,7 @@ int sys_close(int fd)
     Message m;
     FMMessage *msg = (FMMessage *)&m;
     msg->header.type = MSG_FM_CLOSE;
+    msg->req_pid = current->pid;
     msg->fd1 = fd;
 
     send(FM, &m);
@@ -47,6 +50,7 @@ int sys_dup(int oldfd)
     Message m;
     FMMessage *msg = (FMMessage *)&m;
     msg->header.type = MSG_FM_DUP;
+    msg->req_pid = current->pid;
     msg->fd1 = oldfd;
 
     send(FM, &m);
@@ -60,6 +64,7 @@ int sys_dup2(int oldfd, int newfd)
     Message m;
     FMMessage *msg = (FMMessage *)&m;
     msg->header.type = MSG_FM_DUP2;
+    msg->req_pid = current->pid;
     msg->fd1 = oldfd;
     msg->fd2 = newfd;
 
@@ -74,6 +79,7 @@ int sys_pipe(int pipefd[2])
     Message m;
     FMMessage *msg = (FMMessage *)&m;
     msg->header.type = MSG_FM_PIPE;
+    msg->req_pid = current->pid;
     msg->pipefd = (uint32_t)pipefd;
 
     send(FM, &m);
@@ -87,6 +93,7 @@ int sys_read(int fd, uint8_t *buf, int len)
     Message m;
     FMMessage *msg = (FMMessage *)&m;
     msg->header.type = MSG_FM_READ;
+    msg->req_pid = current->pid;
     msg->fd1 = fd;
     msg->buf = (uint32_t)buf;
     msg->len = len;
@@ -102,6 +109,7 @@ int sys_write(int fd, uint8_t *buf, int len)
     Message m;
     FMMessage *msg = (FMMessage *)&m;
     msg->header.type = MSG_FM_WRITE;
+    msg->req_pid = current->pid;
     msg->fd1 = fd;
     msg->buf = (uint32_t)buf;
     msg->len = len;

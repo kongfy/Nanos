@@ -20,7 +20,7 @@
 static mm_struct mms[MAX_PROCESS];                                       // 用户进程 mm_struct
 static PDE pdir[MAX_PROCESS][NR_PDE] align_to_page;                      // 用户进程 page directory
 static PTE ptables[TOTAL_MAX_PT][NR_PTE] align_to_page;                  // 用户进程 page tables
-static unsigned char ptmap[TOTAL_MAX_PT / 8];                            // page table bit map
+static uint32_t ptmap[TOTAL_MAX_PT / 32];                                // page table bit map
 
 // 得到一页页表的第一个页表项，注意页表项是连续使用1024个的
 static inline
@@ -28,9 +28,9 @@ PTE* get_free_ptable()
 {
     int index = 0;
     for (index = 0; index < TOTAL_MAX_PT; ++index) {
-        unsigned char mask = 1 << (index % 8);
-        if (!(ptmap[index / 8] & mask)) {
-            ptmap[index / 8] |= mask;
+        uint32_t mask = 1U << (index % 32);
+        if (!(ptmap[index >> 5] & mask)) {
+            ptmap[index >> 5] |= mask;
             return ptables[index];
         }
     }
@@ -115,7 +115,7 @@ void exit_mm(Thread *thread)
             }
 
             uint32_t index = ((void *)ptable - va_to_pa(ptables)) / PAGE_SIZE;
-            ptmap[index / 8] &= ~(1 << index % 8);
+            ptmap[index >> 5] &= ~(1U << index % 32);
 
             make_invalid_pde(pde);
         }

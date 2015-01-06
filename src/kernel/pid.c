@@ -84,7 +84,7 @@ void free_pid(pid_t pid)
 
 void init_pid(void)
 {
-    int i;
+    uint32_t i;
 
     for (i = 0; i < MAP_LENGTH; ++i) {
         pid_map[i] = 0;

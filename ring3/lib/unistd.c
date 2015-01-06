@@ -39,7 +39,7 @@ int open(int filename)
 
 int lseek(int fd, int offset, int whence)
 {
-    return syscall(SYS_LSEEK, offset, whence);
+    return syscall(SYS_LSEEK, fd, offset, whence);
 }
 
 int close(int fd)
@@ -64,10 +64,10 @@ int pipe(int pipefd[2])
 
 int read(int fd, uint8_t *buf, int len)
 {
-    return syscall(SYS_READ, buf, len);
+    return syscall(SYS_READ, fd, buf, len);
 }
 
 int write(int fd, uint8_t *buf, int len)
 {
-    return syscall(SYS_WRITE, buf, len);
+    return syscall(SYS_WRITE, fd, buf, len);
 }

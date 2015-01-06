@@ -129,7 +129,7 @@ backsp(Console *c) {
 }
 
 size_t
-get_cooked(Console *c, char *buf, int count) {
+get_cooked(Console *c, pid_t pid, char *buf, int count) {
     assert(c->f != c->r);
     int nread = 0;
     while (count --) {
@@ -137,7 +137,7 @@ get_cooked(Console *c, char *buf, int count) {
             c->f = (c->f + 1) % CBUF_SZ;
             break;
         }
-        *buf ++ = c->cbuf[c->f];
+        copy_from_kernel(find_tcb_by_pid(pid), buf ++, c->cbuf + c->f, 1);
         nread ++;
         c->f = (c->f + 1) % CBUF_SZ;
     }
@@ -151,7 +151,7 @@ read_request(DevMessage *m) {
         memcpy(&c->rstk[c->rtop ++], m, sizeof(Message));
         if (c->rtop >= RSTK_SZ) panic("too many read request");
     } else {
-        int nread = get_cooked(c, m->buf, m->len);
+        int nread = get_cooked(c, m->req_pid, m->buf, m->len);
         m->ret = nread;
         send(m->header.src, (Message*)m);
     }
