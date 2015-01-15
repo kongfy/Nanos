@@ -21,7 +21,5 @@ void init_tty(void) {
         hal_register(ttynames[i], TTY, i);
     }
     unlock();
-
-    // init_getty();
 }
 

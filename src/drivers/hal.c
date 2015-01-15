@@ -57,7 +57,7 @@ Device *hal_get(const char *name) {
     return NULL;
 }
 
-static size_t
+static void
 dev_rw(int type, Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t len) {
     Message m;
     DevMessage *Msg = (DevMessage *)&m;
@@ -70,18 +70,15 @@ dev_rw(int type, Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t l
     Msg->len = len;
     Msg->req_pid = reqst_pid;
     send(dev->pid, (Message*)&m);
-    receive(dev->pid, (Message*)&m);
-
-    return Msg->ret;
 }
 
-size_t
-dev_read(Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t len) {
-    return dev_rw(MSG_DEVRD, dev, reqst_pid, offset, buf, len);
+void
+dev_read(Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t len){
+    dev_rw(MSG_DEVRD, dev, reqst_pid, offset, buf, len);
 }
 
-size_t
+void
 dev_write(Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t len) {
-    return dev_rw(MSG_DEVWR, dev, reqst_pid, offset, buf, len);
+    dev_rw(MSG_DEVWR, dev, reqst_pid, offset, buf, len);
 }
 

@@ -1,8 +1,8 @@
 #ifndef __HAL_H__
 #define __HAL_H__
 
-#define MSG_DEVRD  1
-#define MSG_DEVWR  2
+#define MSG_DEVRD  200
+#define MSG_DEVWR  201
 
 #include "common.h"
 #include "kernel/list.h"
@@ -28,8 +28,8 @@ struct Device {
 };
 typedef struct Device Device;
 
-size_t dev_read(Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t count);
-size_t dev_write(Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t count);
+void dev_read(Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t count);
+void dev_write(Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t count);
 
 void hal_register(const char *name, pid_t pid, int dev_id);
 Device *hal_get(const char *name);

@@ -52,12 +52,13 @@ FI* get_free_file_table()
     return NULL;
 }
 
-size_t ram_read(int file_name, uint8_t *buf, off_t offset, size_t len, Thread *thread)
+Device* ram_read(int file_name, uint8_t *buf, off_t offset, size_t len, Thread *thread)
 {
     Device *dev = hal_get("ram");
 
     offset += file_name * NR_FILE_SIZE;
-    return dev_read(dev, thread->pid, offset, buf, len);
+    dev_read(dev, thread->pid, offset, buf, len);
+    return dev;
 }
 
 int do_open(Thread *thread, int filename)
@@ -92,7 +93,7 @@ int do_close(Thread *thread, int fd)
     return 0;
 }
 
-int do_read(Thread *thread, int fd, uint8_t *buf, int len)
+Device* do_read(Thread *thread, int fd, uint8_t *buf, int len)
 {
     assert(thread->fm_struct);
     assert(thread->fm_struct->fd[fd]);
@@ -104,14 +105,15 @@ int do_read(Thread *thread, int fd, uint8_t *buf, int len)
     case Reg:
         break;
     case Dev: {
-        return dev_read(file->dev, thread->pid, 0, buf, len);
+        dev_read(file->dev, thread->pid, 0, buf, len);
+        return file->dev;
     }
     }
 
-    return 0;
+    return NULL;
 }
 
-int do_write(Thread *thread, int fd, uint8_t *buf, int len)
+Device* do_write(Thread *thread, int fd, uint8_t *buf, int len)
 {
     assert(thread->fm_struct);
     assert(thread->fm_struct->fd[fd]);
@@ -123,11 +125,12 @@ int do_write(Thread *thread, int fd, uint8_t *buf, int len)
     case Reg:
         break;
     case Dev: {
-        return dev_write(file->dev, thread->pid, 0, buf, len);
+        dev_write(file->dev, thread->pid, 0, buf, len);
+        return file->dev;
     }
     }
 
-    return 0;
+    return NULL;
 }
 
 int do_lseek(Thread *Thread, int fd, int offset, int whence)
