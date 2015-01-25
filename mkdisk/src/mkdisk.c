@@ -5,18 +5,23 @@
 #include <sys/types.h>
 
 #include "mkdisk.h"
+#include "fsys.h"
 
 #define MAX_LEN 1024
 
+extern int fd_out;
+
 static
-MKDError make_dir(const char *path)
+MKDError make_dir(const char *path, const char *filename, int parent_inode)
 {
     struct stat   statbuf;
     struct dirent *dirp;
     DIR           *dp;
     char          subpath[MAX_LEN];
+    MKDError      err;
 
     dp = opendir(path);
+    int inode = make_sub_dir(filename, parent_inode);
 
     while ((dirp = readdir(dp)) != NULL) {
         sprintf(subpath, "%s/%s", path, dirp->d_name);
@@ -32,10 +37,15 @@ MKDError make_dir(const char *path)
             sprintf(subpath, "%s/%s", path, dirp->d_name);
             printf("path : %s\n", subpath);
 
-            make_dir(subpath);
+
+            if ((err = make_dir(subpath, dirp->d_name, inode)) < 0) {
+                return err;
+            };
         } else if (S_ISREG(statbuf.st_mode)) {
             sprintf(subpath, "%s/%s", path, dirp->d_name);
             printf("file : %s\n", subpath);
+
+            make_sub_file(subpath, dirp->d_name, inode);
         }
     }
 
@@ -54,7 +64,14 @@ MKDError mkdisk(const char *pathname, int fd)
         return ENDIR;
     }
 
-    make_dir(pathname);
+    if (chdir(pathname) < 0) {
+        return ECHDIR;
+    }
+
+    fd_out = fd;
+
+    init_disk();
+    make_dir(".", "/", -1);
 
     return 0;
 }

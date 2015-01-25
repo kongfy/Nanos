@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include "mkdisk.h"
 
@@ -16,7 +17,9 @@ int main(int argc, char *argv[])
     }
 
     if (path) {
-        MKDError error = mkdisk(path, 0);
+        int fd = open("disk", O_RDWR | O_CREAT | O_TRUNC | O_SYNC, S_IRWXU | S_IRGRP | S_IROTH);
+        MKDError error = mkdisk(path, fd);
+        close(fd);
 
         char *errmsg = NULL;
         switch (error) {

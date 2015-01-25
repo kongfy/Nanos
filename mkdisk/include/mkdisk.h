@@ -5,6 +5,7 @@
 typedef enum MKDError {
     ESTAT = -1,
     ENDIR = -2,
+    ECHDIR = -3,
 } MKDError;
 
 MKDError mkdisk(const char *pathname, int fd);
