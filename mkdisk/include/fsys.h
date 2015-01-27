@@ -15,8 +15,8 @@ int get_free_inode();
 int get_free_block();
 void clear_inode_map(int index);
 void clear_block_map(int index);
-iNode load_inode(int index);
-void save_inode(int index, iNode *inode);
+iNode_entry load_inode(int index);
+void save_inode(int index, iNode_entry *inode);
 size_t read_block(int index, void *buffer);
 size_t write_block(int index, void *buffer);
 

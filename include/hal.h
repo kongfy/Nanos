@@ -28,8 +28,10 @@ struct Device {
 };
 typedef struct Device Device;
 
-void dev_read(Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t count);
-void dev_write(Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t count);
+void dev_read(Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t len);
+void dev_write(Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t len);
+size_t dev_read_block(Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t len);
+size_t dev_write_block(Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t len);
 
 void hal_register(const char *name, pid_t pid, int dev_id);
 Device *hal_get(const char *name);

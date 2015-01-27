@@ -1,13 +1,13 @@
 #include "common.h"
 #include "server/fm.h"
 
-int sys_open(int filename)
+int sys_open(const char *filename)
 {
     Message m;
     FMMessage *msg = (FMMessage *)&m;
     msg->header.type = MSG_FM_OPEN;
     msg->req_pid = current->pid;
-    msg->file_name = filename;
+    msg->filename = filename;
 
     send(FM, &m);
     receive(FM, &m);

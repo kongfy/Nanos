@@ -28,8 +28,8 @@
 #define MSG_FM_WRITE  17
 
 typedef struct FMMessage {
-    MsgHead header; // header与Message的头部定义保持一致即可(src, dst, type)
-    int file_name;
+    MsgHead header;  // header与Message的头部定义保持一致即可(src, dst, type)
+    const char *filename; // Warning: DO NOT change the memory before the operation completed!
     int fd1, fd2;
     off_t offset;
     int whence;

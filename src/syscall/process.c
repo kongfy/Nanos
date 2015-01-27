@@ -15,7 +15,7 @@ pid_t sys_fork(void)
     return msg->ret;
 }
 
-int32_t sys_exec(int filename, char *const argv[])
+int32_t sys_exec(const char *filename, char *const argv[])
 {
     Message m;
     PMMessage *msg = (PMMessage *)&m;

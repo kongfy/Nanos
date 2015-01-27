@@ -52,18 +52,69 @@ FI* get_free_file_table()
     return NULL;
 }
 
-Device* ram_read(int file_name, uint8_t *buf, off_t offset, size_t len, Thread *thread)
+// blocking
+static
+iNode path_to_inode(const char *filename)
 {
-    Device *dev = hal_get("ram");
-
-    offset += file_name * NR_FILE_SIZE;
-    dev_read(dev, thread->pid, offset, buf, len);
-    return dev;
+    iNode temp;
+    return temp;
 }
 
-int do_open(Thread *thread, int filename)
+// non-blocking
+/* static */
+/* void read_from_fsys(const iNode *inode, uint8_t *buf, off_t offset, size_t len, Thread *thread) */
+/* { */
+/* } */
+
+Request_key fs_read(const char *filename, uint8_t *buf, off_t offset, size_t len, Thread *thread)
 {
-    return 0;
+    Message m;
+    FSYSMessage *msg = (FSYSMessage *)&m;
+    msg->header.type = MSG_FSYS_READ_BY_FILENAME;
+    msg->req_pid = thread->pid;
+    msg->filename = filename;
+    msg->buf = buf;
+    msg->offset = offset;
+    msg->len = len;
+
+    send(FSYSD, &m);
+
+    Request_key key;
+    key.type = REQ_FSYS;
+    key.key.fsys.req_pid = thread->pid;
+    return key;
+}
+
+static
+FI *open_file(iNode *inode)
+{
+    return NULL;
+}
+
+int do_open(Thread *thread, const char* filename)
+{
+    assert(thread->fm_struct);
+
+    int fd;
+    for (fd = 0; fd < NR_FD; ++fd) {
+        if (!thread->fm_struct->fd[fd]) {
+            iNode inode = path_to_inode(filename);
+            if (inode.index < 0) {
+                return -1;
+            }
+
+            FI *file = open_file(&inode);
+            OFTE *ste = get_free_sys_table();
+            ste->offset = 0;
+            ste->file = file;
+            ste->_count = 1;
+            thread->fm_struct->fd[fd] = ste;
+
+            return fd;
+        }
+    }
+
+    return -1;
 }
 
 int do_close(Thread *thread, int fd)
@@ -93,27 +144,34 @@ int do_close(Thread *thread, int fd)
     return 0;
 }
 
-Device* do_read(Thread *thread, int fd, uint8_t *buf, int len)
+Request_key do_read(Thread *thread, int fd, uint8_t *buf, int len)
 {
     assert(thread->fm_struct);
     assert(thread->fm_struct->fd[fd]);
 
     OFTE *ste = thread->fm_struct->fd[fd];
     FI *file = ste->file;
+
+    Request_key key;
+    key.type = REQ_NULL;
 
     switch (file->type) {
     case Reg:
         break;
     case Dev: {
         dev_read(file->dev, thread->pid, 0, buf, len);
-        return file->dev;
+        key.type = REQ_DEV;
+        key.key.dev.req_pid = thread->pid;
+        key.key.dev.pid = file->dev->pid;
+        key.key.dev.dev_id = file->dev->dev_id;
+        break;
     }
     }
 
-    return NULL;
+    return key;
 }
 
-Device* do_write(Thread *thread, int fd, uint8_t *buf, int len)
+Request_key do_write(Thread *thread, int fd, uint8_t *buf, int len)
 {
     assert(thread->fm_struct);
     assert(thread->fm_struct->fd[fd]);
@@ -121,16 +179,23 @@ Device* do_write(Thread *thread, int fd, uint8_t *buf, int len)
     OFTE *ste = thread->fm_struct->fd[fd];
     FI *file = ste->file;
 
+    Request_key key;
+    key.type = REQ_NULL;
+
     switch (file->type) {
     case Reg:
         break;
     case Dev: {
         dev_write(file->dev, thread->pid, 0, buf, len);
-        return file->dev;
+        key.type = REQ_DEV;
+        key.key.dev.req_pid = thread->pid;
+        key.key.dev.pid = file->dev->pid;
+        key.key.dev.dev_id = file->dev->dev_id;
+        break;
     }
     }
 
-    return NULL;
+    return key;
 }
 
 int do_lseek(Thread *Thread, int fd, int offset, int whence)

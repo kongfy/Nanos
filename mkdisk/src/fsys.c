@@ -13,39 +13,33 @@
 #define L2_BLK (L1_BLK + BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK)
 #define L3_BLK (L2_BLK + BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK)
 
-static uint8_t block[BLK_SIZE];
-
-static inline
-void clear_buffer()
-{
-    memset(block, 0, BLK_SIZE);
-}
-
 static
-int add_blk_to_inode(iNode *inode)
+int add_blk_to_inode(iNode_entry *inode)
 {
+    uint8_t block[BLK_SIZE];
+    memset(block, 0, BLK_SIZE);
+
     int blk = get_free_block();
-    clear_buffer();
     write_block(blk, block);
 
-    if (inode->blks + 1 < DIRECT_BLK) {
-        inode->index[inode->blks + 1] = blk;
-    } else if (inode->blks + 1 < L1_BLK) {
+    if (inode->blks < DIRECT_BLK) {
+        inode->index[inode->blks] = blk;
+    } else if (inode->blks < L1_BLK) {
         if (inode->blks == DIRECT_BLK) {
             inode->index[12] = get_free_block();
         }
 
-        int index = inode->blks + 1 - DIRECT_BLK;
+        int index = inode->blks - DIRECT_BLK;
         read_block(inode->index[12], block);
         *((int*)block + index) = blk;
         write_block(inode->index[12], block);
-    } else if (inode->blks + 1 < L2_BLK) {
+    } else if (inode->blks < L2_BLK) {
         if (inode->blks == L1_BLK) {
             inode->index[13] = get_free_block();
         }
 
-        int l1_index = (inode->blks + 1 - L1_BLK) / BLOCKS_PER_BLOCK;
-        int l2_index = (inode->blks + 1 - L1_BLK) % BLOCKS_PER_BLOCK;
+        int l1_index = (inode->blks - L1_BLK) / BLOCKS_PER_BLOCK;
+        int l2_index = (inode->blks - L1_BLK) % BLOCKS_PER_BLOCK;
 
         read_block(inode->index[13], block);
         if (l2_index == 0) {
@@ -57,14 +51,14 @@ int add_blk_to_inode(iNode *inode)
         read_block(index, block);
         *((int*)block + l2_index) = get_free_block();
         write_block(index, block);
-    } else if (inode->blks + 1 < L3_BLK) {
+    } else if (inode->blks < L3_BLK) {
         if (inode->blks == L2_BLK) {
             inode->index[14] = get_free_block();
         }
 
-        int l1_index = (inode->blks + 1 - L2_BLK) / (BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK);
-        int l2_index = (inode->blks + 1 - L2_BLK) % (BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK) / BLOCKS_PER_BLOCK;
-        int l3_index = (inode->blks + 1 - L2_BLK) % (BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK) % BLOCKS_PER_BLOCK;
+        int l1_index = (inode->blks - L2_BLK) / (BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK);
+        int l2_index = (inode->blks - L2_BLK) % (BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK) / BLOCKS_PER_BLOCK;
+        int l3_index = (inode->blks - L2_BLK) % (BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK) % BLOCKS_PER_BLOCK;
 
         read_block(inode->index[14], block);
         if (l2_index == 0 && l3_index == 0) {
@@ -93,8 +87,11 @@ int add_blk_to_inode(iNode *inode)
 }
 
 static
-int get_blk_for_inode(int blk, iNode *inode)
+int get_blk_for_inode(int blk, iNode_entry *inode)
 {
+    uint8_t block[BLK_SIZE];
+    memset(block, 0, BLK_SIZE);
+
     if (blk < DIRECT_BLK) {
         return inode->index[blk];
     } else if (blk < L1_BLK) {
@@ -124,7 +121,10 @@ int get_blk_for_inode(int blk, iNode *inode)
 static
 void add_to_parent(int parent_inode, int inode, const char *filename)
 {
-    iNode entry = load_inode(parent_inode);
+    uint8_t block[BLK_SIZE];
+    memset(block, 0, BLK_SIZE);
+
+    iNode_entry entry = load_inode(parent_inode);
 
     int blk = 0;
     int index = (entry.size / sizeof(dir_entry)) % (BLK_SIZE / sizeof(dir_entry));
@@ -132,16 +132,16 @@ void add_to_parent(int parent_inode, int inode, const char *filename)
         blk = add_blk_to_inode(&entry);
         read_block(blk, block);
     } else {
-        blk = get_blk_for_inode(entry.blks, &entry);
+        blk = get_blk_for_inode(entry.blks - 1, &entry);
         read_block(blk, block);
     }
 
-    // this may cause small leak in size
-    entry.size += sizeof(dir_entry);
-
-    dir_entry *dir_p = ((dir_entry *)block) + index;
+    dir_entry *dir_p = (dir_entry *)block + index;
     strcpy(dir_p->filename, filename);
     dir_p->inode = inode;
+
+    // this may cause small leak in size
+    entry.size += sizeof(dir_entry);
 
     save_inode(parent_inode, &entry);
     write_block(blk, block);
@@ -149,14 +149,16 @@ void add_to_parent(int parent_inode, int inode, const char *filename)
 
 int make_sub_dir(const char *filename, int parent_inode)
 {
+    uint8_t block[BLK_SIZE];
+    memset(block, 0, BLK_SIZE);
+
     int index = get_free_inode();
 
-    iNode entry = load_inode(index);
-    memset(&entry, 0, sizeof(iNode));
+    iNode_entry entry = load_inode(index);
+    memset(&entry, 0, sizeof(iNode_entry));
     entry.type = DIRECTORY;
     int blk = add_blk_to_inode(&entry);
 
-    clear_buffer();
     dir_entry *dir_p = (dir_entry *)&block;
     strcpy(dir_p->filename, ".");
     dir_p->inode = index;
@@ -180,22 +182,26 @@ int make_sub_dir(const char *filename, int parent_inode)
 
 int make_sub_file(const char* path, const char* filename, int parent_inode)
 {
-    int index = get_free_inode();
-    iNode entry = load_inode(index);
+    uint8_t block[BLK_SIZE];
+    memset(block, 0, BLK_SIZE);
 
-    add_to_parent(parent_inode, index, filename);
-    memset(&entry, 0, sizeof(iNode));
-    entry.size = PLAIN;
+    int index = get_free_inode();
+    iNode_entry entry = load_inode(index);
+
+    memset(&entry, 0, sizeof(iNode_entry));
+    entry.type = PLAIN;
 
     int fd = open(path, O_RDONLY);
     int n = 0;
-    clear_buffer();
+
     while ((n = read(fd, block, BLK_SIZE)) > 0) {
         int blk = add_blk_to_inode(&entry);
         write_block(blk, block);
         entry.size += n;
-        clear_buffer();
+        memset(block, 0, BLK_SIZE);
     }
+
+    add_to_parent(parent_inode, index, filename);
 
     save_inode(index, &entry);
     return index;

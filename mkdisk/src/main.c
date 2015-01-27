@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     }
 
     if (path) {
-        int fd = open("disk", O_RDWR | O_CREAT | O_TRUNC | O_SYNC, S_IRWXU | S_IRGRP | S_IROTH);
+        int fd = open("disk", O_RDWR | O_CREAT | O_TRUNC | O_SYNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
         MKDError error = mkdisk(path, fd);
         close(fd);
 

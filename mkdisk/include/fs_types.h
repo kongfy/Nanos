@@ -23,7 +23,7 @@ typedef struct iNode_entry {
     int type;
     int dev_id;
     int index[15];
-} iNode;
+} iNode_entry;
 
 typedef struct dir_entry {
     char filename[32];

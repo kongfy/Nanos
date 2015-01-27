@@ -11,7 +11,7 @@
 #include "common.h"
 
 #define ANY -1
-#define MSG_SZ 64
+#define MSG_SZ 128
 #define MSG_HWINTR -1
 
 typedef struct Message {

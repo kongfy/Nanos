@@ -21,5 +21,8 @@ mkdisk: $(OBJS)
 
 all: mkdisk
 
+debug: mkdisk
+	gdb mkdisk
+
 clean:
 	rm -f mkdisk $(OBJS) $(OBJS:.o=.d)

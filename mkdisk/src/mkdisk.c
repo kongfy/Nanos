@@ -37,7 +37,6 @@ MKDError make_dir(const char *path, const char *filename, int parent_inode)
             sprintf(subpath, "%s/%s", path, dirp->d_name);
             printf("path : %s\n", subpath);
 
-
             if ((err = make_dir(subpath, dirp->d_name, inode)) < 0) {
                 return err;
             };

@@ -12,7 +12,7 @@ pid_t fork(void)
     return syscall(SYS_FORK);
 }
 
-int exec(int filename, char *const argv[])
+int exec(const char *filename, char *const argv[])
 {
     return syscall(SYS_EXEC, filename, argv);
 }
@@ -32,7 +32,7 @@ void exit(int status)
     syscall(SYS_EXIT, status);
 }
 
-int open(int filename)
+int open(const char *filename)
 {
     return syscall(SYS_OPEN, filename);
 }

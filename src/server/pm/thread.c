@@ -13,11 +13,11 @@
 #define ARG_BUF_SIZE (MAX_ARG_LEN * NR_ARG)
 
 static char buf[ARG_BUF_SIZE];
-static char * argv_buf[NR_ARG];
+static char *argv_buf[NR_ARG];
 
 
 static
-uint32_t init_with_elf(Thread *thread, int file_name)
+uint32_t init_with_elf(Thread *thread, const char *filename)
 {
     /* read 512 bytes starting from offset 0 from file "0" into buf */
     /* it contains the ELF header and program header table */
@@ -27,7 +27,7 @@ uint32_t init_with_elf(Thread *thread, int file_name)
 
     FMMessage *msg = (FMMessage *)&m;
     m.type = MSG_FM_RD;
-    msg->file_name = file_name;
+    msg->filename = filename;
     msg->offset = 0;
     msg->len = 512;
     msg->dest_addr = buf;
@@ -69,7 +69,7 @@ uint32_t init_with_elf(Thread *thread, int file_name)
         /* read ph->filesz bytes starting from offset ph->off from file "0" into pa */
         FMMessage *fmmsg = (FMMessage *)&m;
         m.type = MSG_FM_RD;
-        fmmsg->file_name = file_name;
+        fmmsg->filename = filename;
         fmmsg->offset = ph->off;
         fmmsg->len = ph->filesz;
         fmmsg->req_pid = thread->pid;
@@ -165,7 +165,7 @@ void create_shells()
     int i;
     for (i = 1; i <= NR_TTY; ++i) {
         Thread *thread = create_thread();
-        uint32_t entry = init_with_elf(thread, 2);
+        uint32_t entry = init_with_elf(thread, "/bin/ksh");
         init_stack(thread, entry, NULL);
 
         // initialize with fm
@@ -245,7 +245,7 @@ void mm_exit_mm(Thread *thread)
     receive(MM, &m);
 }
 
-int do_exec(Thread *thread, int filename, char *argv[])
+int do_exec(Thread *thread, const char *filename, char *argv[])
 {
     // copy the argv to kernel buffer
     if (argv) {

@@ -82,3 +82,30 @@ dev_write(Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t len) {
     dev_rw(MSG_DEVWR, dev, reqst_pid, offset, buf, len);
 }
 
+static size_t
+dev_rw_block(int type, Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t len) {
+    Message m;
+    DevMessage *Msg = (DevMessage *)&m;
+    assert(sizeof(DevMessage) <= sizeof(Message)); // Message结构体不能定义得太小
+
+    m.type = type;
+    Msg->dev_id = dev->dev_id;
+    Msg->offset = offset;
+    Msg->buf = buf;
+    Msg->len = len;
+    Msg->req_pid = reqst_pid;
+    send(dev->pid, (Message*)&m);
+    receive(dev->pid, (Message*)&m);
+
+    return Msg->ret;
+}
+
+size_t
+dev_read_block(Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t len) {
+    return dev_rw_block(MSG_DEVRD, dev, reqst_pid, offset, buf, len);
+}
+
+size_t
+dev_write_block(Device *dev, pid_t reqst_pid, off_t offset, void *buf, size_t len) {
+    return dev_rw_block(MSG_DEVWR, dev, reqst_pid, offset, buf, len);
+}

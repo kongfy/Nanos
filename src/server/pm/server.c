@@ -13,7 +13,7 @@
 
 void create_shells();
 pid_t do_fork(Thread *thread);
-int do_exec(Thread *thread, int filename, char *argv[]);
+int do_exec(Thread *thread, const char *filename, char *argv[]);
 void do_waitpid(Thread *thread, pid_t pid);
 void do_exit(Thread *thread, int status);
 

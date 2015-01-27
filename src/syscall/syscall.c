@@ -3,12 +3,12 @@
 
 int printk(char **formatp);
 pid_t sys_fork(void);
-int32_t sys_exec(int filename, char *const argv[]);
+int32_t sys_exec(const char *filename, char *const argv[]);
 int32_t sys_waitpid(pid_t pid);
 uint32_t sys_sleep(uint32_t seconds);
 void sys_exit(int status);
 
-int sys_open(int filename);
+int sys_open(const char *filename);
 int sys_lseek(int fd, int offset, int whence);
 int sys_close(int fd);
 int sys_dup(int oldfd);
@@ -30,7 +30,7 @@ uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arg3)
         return sys_fork();
         break;
     case SYS_EXEC:
-        return sys_exec(arg1, (char *const *)arg2);
+        return sys_exec((char *)arg1, (char *const *)arg2);
         break;
     case SYS_EXIT:
         sys_exit(arg1);
