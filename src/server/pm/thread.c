@@ -6,7 +6,7 @@
 #include "hal.h"
 #include "elf.h"
 #include "drivers/tty.h"
-
+#include "fsys.h"
 
 #define MAX_ARG_LEN 128
 #define NR_ARG 32
@@ -14,7 +14,7 @@
 
 static char buf[ARG_BUF_SIZE];
 static char *argv_buf[NR_ARG];
-
+static char namebuf[MAX_PATH_LEN];
 
 static
 uint32_t init_with_elf(Thread *thread, const char *filename)
@@ -247,6 +247,9 @@ void mm_exit_mm(Thread *thread)
 
 int do_exec(Thread *thread, const char *filename, char *argv[])
 {
+    // copy filename
+    strcpy_to_kernel(thread, namebuf, (char *)filename);
+
     // copy the argv to kernel buffer
     if (argv) {
         char **p = argv_buf;
@@ -278,7 +281,7 @@ int do_exec(Thread *thread, const char *filename, char *argv[])
     init_sem(&thread->msg_sem, 0);
     thread->msg_head = thread->msg_tail = 0;
 
-    uint32_t entry = init_with_elf(thread, filename);
+    uint32_t entry = init_with_elf(thread, namebuf);
     init_stack(thread, entry, argv_buf);
 
     thread_ready(thread);

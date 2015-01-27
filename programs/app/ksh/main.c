@@ -36,7 +36,50 @@ char logo[] = {
   0x20, 0x20, 0x20, 0x20, 0x7c, 0x5f, 0x5f, 0x2f, 0x20, 0x0a, 0x00
 };
 
-uint8_t buf[255];
+#define MAX_LEN 256
+#define MAXARG  16
+uint8_t buf[MAX_LEN];
+
+static inline
+bool isChar(char c)
+{
+    if ((c >= 'a' && c <= 'z') ||
+        (c >= 'A' && c <= 'Z') ||
+        (c >= '0' && c <= '9') ||
+        c == '/' || c == '.') {
+        return true;
+    }
+    return false;
+}
+
+char *parse(uint8_t *buf, void *argv)
+{
+    char *p = (char *)buf;
+
+    while (!isChar(*p) && *p != '\0') *(p++) = '\0';
+
+    char *q = p;
+    while (isChar(*q)) q++;
+
+    bool flag = false;
+    char **t = (char **)argv;
+
+    while (*q != '\0') {
+        if (!flag && isChar(*q)) {
+            *(t++) = q;
+        }
+
+        if (isChar(*q)) {
+            flag = true;
+        } else {
+            *q = '\0';
+            flag = false;
+        }
+        q++;
+    }
+
+    return p;
+}
 
 int main(int argc, char *argv[])
 {
@@ -48,14 +91,18 @@ int main(int argc, char *argv[])
         int nread = read(STDIN_FILENO, buf, 255);
         buf[nread] = 0;
 
+        char *argv[MAXARG];
         int i;
-        for (i = 0; i < nread; i ++) {
-            if (buf[i] >= 'a' && buf[i] <= 'z') {
-                buf[i] += 'A' - 'a';
-            }
-        }
+        for (i = 0; i < MAXARG; ++i) argv[i] = NULL;
 
-        printf("GOT : %s\n", buf);
+        char *filename = parse(buf, argv);
+
+        pid_t pid = fork();
+        if (pid == 0) {
+            exec(filename, argv);
+        } else {
+            waitpid(pid);
+        }
     }
 
     return 0;

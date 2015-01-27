@@ -288,7 +288,7 @@ void copy_fm(Thread *parent, Thread *child)
     assert(parent->fm_struct);
 
     child->fm_struct = &fms[child->pid];
-    child->fm_struct = parent->fm_struct;
+    *child->fm_struct = *parent->fm_struct;
 
     int i = 0;
     for (; i < NR_FD; ++i) {
