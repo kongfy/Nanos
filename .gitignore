@@ -8,6 +8,8 @@
 *.exe
 /kernel
 boot/bootblock
+disk/bin
+include/disk.h
 .cproject
 .project
 cscope.*

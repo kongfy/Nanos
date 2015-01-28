@@ -67,7 +67,7 @@ void ramdisk_handler(Message m)
             off_t offset = msg->offset;
 
             for (i = 0; i < msg->len && offset < NR_DISK_SIZE; ++i) {
-                copy_from_kernel(find_tcb_by_pid(msg->req_pid), msg->buf + i, &disk[offset], 1);
+                copy_from_kernel(find_tcb_by_pid(msg->req_pid), msg->buf + i, &disk_img[offset], 1);
                 offset++;
             }
 
@@ -80,7 +80,7 @@ void ramdisk_handler(Message m)
             off_t offset = msg->offset;
 
             for (i = 0; i < msg->len && offset < NR_DISK_SIZE; ++i) {
-                copy_to_kernel(find_tcb_by_pid(msg->req_pid), &disk[offset], msg->buf + i, 1);
+                copy_to_kernel(find_tcb_by_pid(msg->req_pid), &disk_img[offset], msg->buf + i, 1);
                 offset++;
             }
 

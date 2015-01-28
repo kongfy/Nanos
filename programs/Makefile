@@ -6,8 +6,10 @@ lib:
 	@cd lib; make all
 
 app:
+	-@mkdir ../disk/bin
 	@cd app; make all
 
 clean:
+	-@rm -rf ../disk/bin
 	@cd lib; make clean
 	@cd app; make clean

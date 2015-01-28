@@ -20,13 +20,23 @@ kernel.img: kernel
 	@cd boot; make
 	cat boot/bootblock kernel > kernel.img
 
-kernel: $(OBJS)
+kernel: disk.img $(OBJS)
 	$(LD) $(LDFLAGS) -e entry -Ttext 0xC0100000 -o kernel $(OBJS)
+
+disk.img: programs mkdisk
+	./mkdisk/mkdisk -p disk
+	xxd -i disk.img > include/disk.h
 
 -include $(patsubst %.o, %.d, $(OBJS))
 
 # 定义的一些伪目标
-.PHONY: play clean debug
+.PHONY: play clean debug programs mkdisk disk.img
+programs:
+	@cd programs; make all
+
+mkdisk:
+	@cd mkdisk; make
+
 play: kernel.img
 	$(QEMU) -no-reboot -no-shutdown -serial stdio kernel.img
 
@@ -35,4 +45,6 @@ debug: kernel.img
 
 clean:
 	@cd boot; make clean
-	rm -f kernel kernel.img $(OBJS) $(OBJS:.o=.d)
+	@cd programs; make clean
+	@cd mkdisk; make clean
+	rm -f kernel kernel.img disk.img include/disk.h $(OBJS) $(OBJS:.o=.d)

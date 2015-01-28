@@ -27,6 +27,7 @@ $(TARGET): $(OBJS)
 .PHONY: all clean
 
 all: $(TARGET)
+	-@cp $(TARGET) ../../../disk/bin/
 
 clean:
 	rm -f $(TARGET) $(OBJS) $(OBJS:.o=.d)
