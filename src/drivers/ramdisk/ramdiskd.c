@@ -8,9 +8,10 @@
 #include "kernel.h"
 #include "hal.h"
 #include "drivers/ramdisk.h"
-#include "disk.h"
 
-// static uint8_t *disk = (void*)buff;
+#define RAMDISK_SIZE (16 * 1024)
+
+static uint8_t disk[RAMDISK_SIZE];
 
 // zero, 读取该设备会返回指定长度的'\0'字符(即值为0的字节), 写入该设备时数据将会被丢弃
 static inline
@@ -67,7 +68,7 @@ void ramdisk_handler(Message m)
             off_t offset = msg->offset;
 
             for (i = 0; i < msg->len && offset < NR_DISK_SIZE; ++i) {
-                copy_from_kernel(find_tcb_by_pid(msg->req_pid), msg->buf + i, &disk_img[offset], 1);
+                copy_from_kernel(find_tcb_by_pid(msg->req_pid), msg->buf + i, &disk[offset], 1);
                 offset++;
             }
 
@@ -80,7 +81,7 @@ void ramdisk_handler(Message m)
             off_t offset = msg->offset;
 
             for (i = 0; i < msg->len && offset < NR_DISK_SIZE; ++i) {
-                copy_to_kernel(find_tcb_by_pid(msg->req_pid), &disk_img[offset], msg->buf + i, 1);
+                copy_to_kernel(find_tcb_by_pid(msg->req_pid), &disk[offset], msg->buf + i, 1);
                 offset++;
             }
 

@@ -15,12 +15,12 @@ OBJS = $(CFILES:.c=.o) $(SFILES:.S=.o)
 
 -include $(patsubst %.o, %.d, $(OBJS))
 
+libnanos.a: $(OBJS)
+	$(AR) $(ARFLAGS) libnanos.a $(OBJS)
+
 .PHONY:all clean
 
-all:nanos
-
-nanos:$(OBJS)
-	$(AR) $(ARFLAGS) libnanos.a $(OBJS)
+all: libnanos.a
 
 clean:
 	rm -f libnanos.a $(OBJS) $(OBJS:.o=.d)

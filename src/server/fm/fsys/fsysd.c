@@ -12,7 +12,7 @@ void fsysd()
     assert(sizeof(FSYSMessage) <= sizeof(Message)); // Message结构体不能定义得太小
 
     Message m;
-    fsys_dev = hal_get("ram");
+    fsys_dev = hal_get(FSYSDEV);
 
     while (1) {
         receive(ANY, &m);

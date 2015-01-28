@@ -4,8 +4,8 @@
 #include "fs_types.h"
 #include <unistd.h>
 
-#define INODE_NUM 128
-#define BLK_NUM 128
+#define INODE_NUM 2048
+#define BLK_NUM 2048
 #define BLK_SIZE 1024
 
 size_t dev_read(off_t offset, void *buf, size_t count);

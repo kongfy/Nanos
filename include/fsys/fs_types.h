@@ -6,8 +6,10 @@
 
 #define NR_FD 8
 
-#define INODE_NUM 128
-#define BLK_NUM 128
+#define FSYSDEV "hda"
+#define FSYSOFF (512 << 10)
+#define INODE_NUM 2048
+#define BLK_NUM 2048
 #define BLK_SIZE 1024
 #define MAX_PATH_LEN 2048
 

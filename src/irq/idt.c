@@ -35,6 +35,8 @@ set_trap(struct GateDescriptor *ptr, uint32_t selector, uint32_t offset, uint32_
 /* 声明函数，这些函数在汇编代码里定义 */
 void irq0();
 void irq1();
+void irq14(); // IDE primary channel
+
 void vec0();
 void vec1();
 void vec2();
@@ -86,6 +88,7 @@ void init_idt() {
     // irq0增加了32的offset,参见 http://en.wikibooks.org/wiki/X86_Assembly/Programmable_Interrupt_Controller
     set_intr(idt + 0 + 32, SEG_KERNEL_CODE, (uint32_t)irq0, DPL_KERNEL);
     set_intr(idt + 1 + 32, SEG_KERNEL_CODE, (uint32_t)irq1, DPL_KERNEL);
+    set_intr(idt + 14 + 32, SEG_KERNEL_CODE, (uint32_t)irq14, DPL_KERNEL);
     /* 写入IDT */
     write_idtr(idt, sizeof(idt));
 }

@@ -13,13 +13,13 @@ static uint8_t buf[BLK_SIZE];
 static
 size_t raw_read(off_t offset, void *buf, size_t count, pid_t req_pid)
 {
-    return dev_read_block(fsys_dev, req_pid, offset, buf, count);
+    return dev_read_block(fsys_dev, req_pid, offset + FSYSOFF, buf, count);
 }
 
 static
 size_t raw_write(off_t offset, void *buf, size_t count, pid_t req_pid)
 {
-    return dev_write_block(fsys_dev, req_pid, offset, buf, count);
+    return dev_write_block(fsys_dev, req_pid, offset + FSYSOFF, buf, count);
 }
 
 static inline
