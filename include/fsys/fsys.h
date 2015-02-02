@@ -5,6 +5,9 @@
 #include "hal.h"
 #include "req_cache.h"
 
+#define FILENOTFOUND -1
+#define ISDIRECTORY -2
+
 Request_key fs_read(const char *file_name, uint8_t *buf, off_t offset, size_t len, Thread *thread);
 
 void init_fm_tty(Thread *thread, int tty);

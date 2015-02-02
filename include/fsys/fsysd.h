@@ -14,7 +14,7 @@ typedef struct FSYSMessage {
     off_t offset;
     size_t len;
     iNode inode_entry;
-    unsigned int ret;
+    int ret;
 } FSYSMessage;
 
 extern pid_t FSYSD;

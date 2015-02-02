@@ -99,7 +99,14 @@ int main(int argc, char *argv[])
 
         pid_t pid = fork();
         if (pid == 0) {
-            exec(filename, argv);
+            int err = exec(filename, argv);
+            if (err == -1) {
+                printf("-ksh: %s: No such file or directory\n", filename);
+            } else if (err == -2) {
+                printf("-ksh: %s: is a directory\n", filename);
+            } else if (err == -500) {
+                printf("-ksh: %s: Can not be excuted\n", filename);
+            }
         } else {
             waitpid(pid);
         }

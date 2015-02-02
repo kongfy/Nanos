@@ -13,29 +13,52 @@
 #define ARG_BUF_SIZE (MAX_ARG_LEN * NR_ARG)
 
 static char buf[ARG_BUF_SIZE];
+static char elfbuf[512];
 static char *argv_buf[NR_ARG];
 static char namebuf[MAX_PATH_LEN];
 
 static
-uint32_t init_with_elf(Thread *thread, const char *filename)
+struct ELFHeader *read_elf_header(const char *filename, int *errno)
 {
     /* read 512 bytes starting from offset 0 from file "0" into buf */
     /* it contains the ELF header and program header table */
-    uint8_t buf[512];
-
     Message m;
-
     FMMessage *msg = (FMMessage *)&m;
     m.type = MSG_FM_RD;
     msg->filename = filename;
     msg->offset = 0;
     msg->len = 512;
-    msg->dest_addr = buf;
+    msg->dest_addr = elfbuf;
     msg->req_pid = current->pid;
 
     send(FM, &m);
     receive(FM, &m);
-    assert(msg->ret == 512);
+
+    struct ELFHeader *elf = (struct ELFHeader *)elfbuf;
+
+    if (msg->ret < 0) {
+        if (errno) *errno = msg->ret;
+        return NULL;
+    }
+
+    if (msg->ret != 512) {
+        if (errno) *errno = -500;
+        return NULL;
+    }
+
+    char *magic = (char *)&elf->magic;
+    if (!(magic[0] == 0x7f && magic[1] == 'E' && magic[2] == 'L' && magic[3] == 'F')) {
+        if (errno) *errno = -500;
+        return NULL;
+    }
+
+    return (struct ELFHeader*)elfbuf;
+}
+
+static
+uint32_t init_with_elf(Thread *thread, const char *filename, struct ELFHeader *elf)
+{
+    Message m;
 
     // 通知MM为进程创建虚拟内存空间
     MMMessage *mmmsg = (MMMessage *)&m;
@@ -45,10 +68,7 @@ uint32_t init_with_elf(Thread *thread, const char *filename)
     send(MM, &m);
     receive(MM, &m);
 
-    struct ELFHeader *elf;
     struct ProgramHeader *ph, *eph;
-
-    elf = (struct ELFHeader*)buf;
 
     /* 把每个program segement依次读入内存 */
     ph = (struct ProgramHeader*)((char *)elf + elf->phoff);
@@ -165,7 +185,9 @@ void create_shells()
     int i;
     for (i = 1; i <= NR_TTY; ++i) {
         Thread *thread = create_thread();
-        uint32_t entry = init_with_elf(thread, "/bin/ksh");
+        struct ELFHeader *elf = read_elf_header("/bin/ksh", NULL);
+        if (!elf) panic("Fatal : Can't load shell program /bin/ksh!\n'");
+        uint32_t entry = init_with_elf(thread, "/bin/ksh", elf);
         init_stack(thread, entry, NULL);
 
         // initialize with fm
@@ -272,6 +294,13 @@ int do_exec(Thread *thread, const char *filename, char *argv[])
         *p = NULL;
     }
 
+    int errno;
+    struct ELFHeader *elf = read_elf_header(namebuf, &errno);
+
+    if (!elf) {
+        return errno;
+    }
+
     // clean up memeory
     mm_exit_mm(thread);
 
@@ -281,9 +310,9 @@ int do_exec(Thread *thread, const char *filename, char *argv[])
     init_sem(&thread->msg_sem, 0);
     thread->msg_head = thread->msg_tail = 0;
 
-    uint32_t entry = init_with_elf(thread, namebuf);
-    init_stack(thread, entry, argv_buf);
+    uint32_t entry = init_with_elf(thread, namebuf, elf);
 
+    init_stack(thread, entry, argv_buf);
     thread_ready(thread);
 
     return 0;

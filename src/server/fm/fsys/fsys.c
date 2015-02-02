@@ -131,6 +131,16 @@ size_t fsys_read_by_filename(const char *filename, uint8_t *buf, off_t offset, s
     }
 
     iNode inode = fsys_path_to_inode(filename, thread);
+    if (inode.index < 0) {
+        // not found
+        return FILENOTFOUND;
+    }
+
+    if (inode.entry.type == DIRECTORY) {
+        // is a directroy
+        return ISDIRECTORY;
+    }
+
     len = min(len, inode.entry.size - offset);
 
     off_t p = offset;

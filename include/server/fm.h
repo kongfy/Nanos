@@ -40,7 +40,7 @@ typedef struct FMMessage {
     pid_t child_pid;
     void *dest_addr;
     int tty;
-    unsigned int ret;
+    int ret;
 } FMMessage;
 
 void init_fm();
