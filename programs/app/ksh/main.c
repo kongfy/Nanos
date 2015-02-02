@@ -1,5 +1,6 @@
 #include "stdio.h"
 #include "unistd.h"
+#include "string.h"
 #include "const.h"
 
 char logo[] = {
@@ -39,6 +40,7 @@ char logo[] = {
 #define MAX_LEN 256
 #define MAXARG  16
 uint8_t buf[MAX_LEN];
+uint8_t path[MAX_LEN];
 
 static inline
 bool isChar(char c)
@@ -81,6 +83,32 @@ char *parse(uint8_t *buf, void *argv)
     return p;
 }
 
+char *path_extend(char *filename)
+{
+    int len = strlen(filename);
+    if (len == 0) {
+        return filename;
+    }
+
+    if (len >= 1) {
+        if (filename[0] == '/') {
+            return filename;
+        }
+    }
+
+    if (len >= 2) {
+        if (filename[0] == '.' && filename[1] == '/') {
+            return filename;
+        }
+    }
+
+    strcpy((char *)path, "/bin/");
+    strcpy((char *)&path[5], filename);
+    return (char *)path;
+}
+
+bool buildin(char *filename, char *argv[]);
+
 int main(int argc, char *argv[])
 {
     printf(logo);
@@ -96,6 +124,17 @@ int main(int argc, char *argv[])
         for (i = 0; i < MAXARG; ++i) argv[i] = NULL;
 
         char *filename = parse(buf, argv);
+
+        if (!strlen(filename)) {
+            continue;
+        }
+
+        // check build-in first
+        if (buildin(filename, argv)) {
+            continue;
+        }
+
+        filename = path_extend(filename);
 
         pid_t pid = fork();
         if (pid == 0) {
