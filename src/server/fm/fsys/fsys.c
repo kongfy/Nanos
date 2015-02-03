@@ -92,14 +92,18 @@ iNode search_dir(char *filename, iNode *inode)
     return temp;
 }
 
-iNode fsys_path_to_inode(const char *filename, Thread *thread)
+iNode fsys_path_to_inode(const char *filename, Thread *thread, iNode *pwd)
 {
     strcpy_to_kernel(thread, path, (char *)filename);
     int len = strlen(path);
 
     iNode temp;
-    temp.index = 0; // root
-    temp.entry = load_inode(temp.index);
+    if (pwd && !(len > 0 && path[0] == '/')) {
+        temp = *pwd;
+    } else {
+        temp.index = 0; // root
+        temp.entry = load_inode(temp.index);
+    }
 
     int l = 0;
     int r = l;
@@ -111,6 +115,8 @@ iNode fsys_path_to_inode(const char *filename, Thread *thread)
         path[r] = '\0';
 
         char *name = &path[l];
+        if (strlen(name) == 0) break;
+
         temp = search_dir(name, &temp);
 
         if (temp.index < 0) {
@@ -124,13 +130,13 @@ iNode fsys_path_to_inode(const char *filename, Thread *thread)
     return temp;
 }
 
-size_t fsys_read_by_filename(const char *filename, uint8_t *buf, off_t offset, size_t len, Thread *thread)
+size_t fsys_read_by_filename(const char *filename, uint8_t *buf, off_t offset, size_t len, Thread *thread, iNode *pwd)
 {
     if (len <= 0) {
         return 0;
     }
 
-    iNode inode = fsys_path_to_inode(filename, thread);
+    iNode inode = fsys_path_to_inode(filename, thread, pwd);
     if (inode.index < 0) {
         // not found
         return FILENOTFOUND;
@@ -162,4 +168,23 @@ size_t fsys_read_by_filename(const char *filename, uint8_t *buf, off_t offset, s
     }
 
     return count;
+}
+
+int fsys_chdir(const char *filename, Thread *thread)
+{
+    assert(thread->fm_struct);
+
+    iNode inode = fsys_path_to_inode(filename, thread, &thread->fm_struct->pwd);
+    if (inode.index < 0) {
+        // not found
+        return FILENOTFOUND;
+    }
+
+    if (inode.entry.type != DIRECTORY) {
+        // is not a directroy
+        return ISNDIRECTORY;
+    }
+
+    thread->fm_struct->pwd = inode;
+    return 0;
 }

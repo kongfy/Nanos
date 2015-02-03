@@ -19,5 +19,6 @@ int syscall(int id, ...);
 #define SYS_PIPE   15
 #define SYS_READ   16
 #define SYS_WRITE  17
+#define SYS_CHDIR  18
 
 #endif /* __SYSCALL_H__ */

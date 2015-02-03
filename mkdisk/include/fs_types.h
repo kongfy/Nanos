@@ -20,7 +20,7 @@ typedef enum iNode_type {
 typedef struct iNode_entry {
     size_t size;
     size_t blks;
-    int type;
+    iNode_type type;
     int dev_id;
     int index[15];
 } iNode_entry;

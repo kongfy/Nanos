@@ -4,16 +4,17 @@
 #include "kernel.h"
 
 #define MSG_FSYS_READ_BY_FILENAME 5
+#define MSG_FSYS_INODE_FOR_FILENAME 6
+#define MSG_FSYS_CHDIR 7
 
 typedef struct FSYSMessage {
     MsgHead header;  // header与Message的头部定义保持一致即可(src, dst, type)
     pid_t req_pid;
     const char *filename; // Warning: DO NOT change the memory before the operation completed!
-    const iNode *inode;
+    iNode *inode, *pwd;
     uint8_t *buf;
     off_t offset;
     size_t len;
-    iNode inode_entry;
     int ret;
 } FSYSMessage;
 

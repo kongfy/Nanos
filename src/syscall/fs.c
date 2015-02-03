@@ -119,3 +119,17 @@ int sys_write(int fd, uint8_t *buf, int len)
 
     return msg->ret;
 }
+
+int sys_chdir(const char *path)
+{
+    Message m;
+    FMMessage *msg = (FMMessage *)&m;
+    msg->header.type = MSG_FM_CHDIR;
+    msg->req_pid = current->pid;
+    msg->filename = path;
+
+    send(FM, &m);
+    receive(FM, &m);
+
+    return msg->ret;
+}

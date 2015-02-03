@@ -5,7 +5,9 @@
 pid_t FSYSD;
 extern Device *fsys_dev;
 
-size_t fsys_read_by_filename(const char *filename, uint8_t *buf, off_t offset, size_t len, Thread *thread);
+iNode fsys_path_to_inode(const char *filename, Thread *thread, iNode *pwd);
+size_t fsys_read_by_filename(const char *filename, uint8_t *buf, off_t offset, size_t len, Thread *thread, iNode *pwd);
+int fsys_chdir(const char *filename, Thread *thread);
 
 void fsysd()
 {
@@ -25,7 +27,23 @@ void fsysd()
 
             switch (m.type) {
             case MSG_FSYS_READ_BY_FILENAME: {
-                msg->ret = fsys_read_by_filename(msg->filename, msg->buf, msg->offset, msg->len, thread);
+                msg->ret = fsys_read_by_filename(msg->filename, msg->buf, msg->offset, msg->len, thread, msg->pwd);
+                send(m.src, &m);
+                break;
+            }
+            case MSG_FSYS_INODE_FOR_FILENAME: {
+                iNode inode = fsys_path_to_inode(msg->filename, thread, msg->pwd);
+                msg->ret = 0;
+                *(msg->inode) = inode;
+                if (inode.index < 0) {
+                    // not found
+                    msg->ret = FILENOTFOUND;
+                }
+                send(m.src, &m);
+                break;
+            }
+            case MSG_FSYS_CHDIR: {
+                msg->ret = fsys_chdir(msg->filename, thread);
                 send(m.src, &m);
                 break;
             }

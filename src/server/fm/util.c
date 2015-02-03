@@ -52,11 +52,45 @@ FI* get_free_file_table()
     return NULL;
 }
 
-// blocking
-static
-iNode path_to_inode(const char *filename)
+static inline
+void receive_fsys_block(int type, Message *m)
 {
+    FSYSMessage *msg = (FSYSMessage *)m;
+    // ugly hack here...
+    while (true) {
+        receive(FSYSD, m);
+        if (msg->header.type == type) break;
+
+        Request_key key;
+        key.type = REQ_FSYS;
+        key.key.fsys.req_pid = msg->req_pid;
+        reply(key, msg->ret);
+    }
+}
+
+// blocking && kernel only
+static
+iNode path_to_inode(const char *filename, Thread *thread)
+{
+    assert(current->pid == FM);
+
     iNode temp;
+
+    Message m;
+    FSYSMessage *msg = (FSYSMessage *)&m;
+    msg->header.type = MSG_FSYS_INODE_FOR_FILENAME;
+    msg->req_pid = current->pid;
+    msg->inode = &temp;
+    msg->filename = filename;
+    if (thread && thread->fm_struct) {
+        msg->pwd = &thread->fm_struct->pwd;
+    } else {
+        msg->pwd = NULL;
+    }
+
+    send(FSYSD, &m);
+    receive_fsys_block(MSG_FSYS_INODE_FOR_FILENAME, &m);
+
     return temp;
 }
 
@@ -66,7 +100,7 @@ iNode path_to_inode(const char *filename)
 /* { */
 /* } */
 
-Request_key fs_read(const char *filename, uint8_t *buf, off_t offset, size_t len, Thread *thread)
+Request_key fs_read(const char *filename, uint8_t *buf, off_t offset, size_t len, Thread *thread, Thread *user)
 {
     Message m;
     FSYSMessage *msg = (FSYSMessage *)&m;
@@ -76,6 +110,7 @@ Request_key fs_read(const char *filename, uint8_t *buf, off_t offset, size_t len
     msg->buf = buf;
     msg->offset = offset;
     msg->len = len;
+    msg->pwd = user ? &user->fm_struct->pwd : NULL;
 
     send(FSYSD, &m);
 
@@ -91,6 +126,20 @@ FI *open_file(iNode *inode)
     return NULL;
 }
 
+int do_chdir(Thread *thread, const char *filename)
+{
+    Message m;
+    FSYSMessage *msg = (FSYSMessage *)&m;
+    msg->header.type = MSG_FSYS_CHDIR;
+    msg->req_pid = thread->pid;
+    msg->filename = filename;
+
+    send(FSYSD, &m);
+    receive_fsys_block(MSG_FSYS_CHDIR, &m);
+
+    return msg->ret;
+}
+
 int do_open(Thread *thread, const char* filename)
 {
     assert(thread->fm_struct);
@@ -98,7 +147,7 @@ int do_open(Thread *thread, const char* filename)
     int fd;
     for (fd = 0; fd < NR_FD; ++fd) {
         if (!thread->fm_struct->fd[fd]) {
-            iNode inode = path_to_inode(filename);
+            iNode inode = path_to_inode(filename, thread);
             if (inode.index < 0) {
                 return -1;
             }
@@ -260,6 +309,7 @@ int do_pipe(Thread *Thread, int pipefd[2])
 void init_fm_tty(Thread *thread, int tty)
 {
     thread->fm_struct = &fms[thread->pid];
+    thread->fm_struct->pwd = path_to_inode("/", NULL);
 
     char name[] = "tty*";
     Device *dev;

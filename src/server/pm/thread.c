@@ -18,7 +18,7 @@ static char *argv_buf[NR_ARG];
 static char namebuf[MAX_PATH_LEN];
 
 static
-struct ELFHeader *read_elf_header(const char *filename, int *errno)
+struct ELFHeader *read_elf_header(Thread *thread, const char *filename, int *errno)
 {
     /* read 512 bytes starting from offset 0 from file "0" into buf */
     /* it contains the ELF header and program header table */
@@ -30,6 +30,7 @@ struct ELFHeader *read_elf_header(const char *filename, int *errno)
     msg->len = 512;
     msg->dest_addr = elfbuf;
     msg->req_pid = current->pid;
+    msg->usr_pid = thread->pid; // user thread
 
     send(FM, &m);
     receive(FM, &m);
@@ -94,6 +95,7 @@ uint32_t init_with_elf(Thread *thread, const char *filename, struct ELFHeader *e
         fmmsg->len = ph->filesz;
         fmmsg->req_pid = thread->pid;
         fmmsg->dest_addr = (void *)ph->vaddr;
+        fmmsg->usr_pid = thread->pid; // user thread
 
         send(FM, &m);
         receive(FM, &m);
@@ -185,10 +187,6 @@ void create_shells()
     int i;
     for (i = 1; i <= NR_TTY; ++i) {
         Thread *thread = create_thread();
-        struct ELFHeader *elf = read_elf_header("/bin/ksh", NULL);
-        if (!elf) panic("Fatal : Can't load shell program /bin/ksh!\n'");
-        uint32_t entry = init_with_elf(thread, "/bin/ksh", elf);
-        init_stack(thread, entry, NULL);
 
         // initialize with fm
         Message m;
@@ -199,6 +197,12 @@ void create_shells()
 
         send(FM, &m);
         receive(FM, &m);
+
+        struct ELFHeader *elf = read_elf_header(thread, "/bin/ksh", NULL);
+        if (!elf) panic("Fatal : Can't load shell program /bin/ksh!\n'");
+        uint32_t entry = init_with_elf(thread, "/bin/ksh", elf);
+        init_stack(thread, entry, NULL);
+
 
         thread_ready(thread);
     }
@@ -295,7 +299,7 @@ int do_exec(Thread *thread, const char *filename, char *argv[])
     }
 
     int errno;
-    struct ELFHeader *elf = read_elf_header(namebuf, &errno);
+    struct ELFHeader *elf = read_elf_header(thread, namebuf, &errno);
 
     if (!elf) {
         return errno;

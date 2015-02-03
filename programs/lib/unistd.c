@@ -71,3 +71,8 @@ int write(int fd, uint8_t *buf, int len)
 {
     return syscall(SYS_WRITE, fd, buf, len);
 }
+
+int chdir(const char *path)
+{
+    return syscall(SYS_CHDIR, path);
+}

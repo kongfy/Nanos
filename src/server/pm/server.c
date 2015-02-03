@@ -24,6 +24,8 @@ void pm_server_thread()
 
     Message m;
 
+    assert(sizeof(PMMessage) <= sizeof(Message)); // Message结构体不能定义得太小
+
     while (1) {
         receive(ANY, &m);
 

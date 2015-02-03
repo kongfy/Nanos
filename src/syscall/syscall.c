@@ -17,6 +17,8 @@ int sys_pipe(int pipefd[2]);
 int sys_read(int fd, uint8_t *buf, int len);
 int sys_write(int fd, uint8_t *buf, int len);
 
+int sys_chdir(const char *path);
+
 uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arg3)
 {
     switch (id) {
@@ -58,6 +60,9 @@ uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arg3)
         break;
     case SYS_WRITE:
         return sys_write(arg1, (uint8_t *)arg2, arg3);
+        break;
+    case SYS_CHDIR:
+        return sys_chdir((char *)arg1);
         break;
     default:
         panic("Undefined system call!\n");

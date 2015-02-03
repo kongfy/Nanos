@@ -26,6 +26,7 @@
 #define MSG_FM_PIPE   15
 #define MSG_FM_READ   16
 #define MSG_FM_WRITE  17
+#define MSG_FM_CHDIR  18
 
 typedef struct FMMessage {
     MsgHead header;  // header与Message的头部定义保持一致即可(src, dst, type)
@@ -38,6 +39,7 @@ typedef struct FMMessage {
     uint32_t pipefd;
     pid_t req_pid;
     pid_t child_pid;
+    pid_t usr_pid;
     void *dest_addr;
     int tty;
     int ret;

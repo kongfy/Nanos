@@ -25,4 +25,6 @@ int pipe(int pipefd[2]);
 int read(int fd, uint8_t *buf, int len);
 int write(int fd, uint8_t *buf, int len);
 
+int chdir(const char *path);
+
 #endif /* __UNISTD_H__ */

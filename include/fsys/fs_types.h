@@ -61,6 +61,7 @@ typedef struct OpenFileTableEntry
 typedef struct fm_struct
 {
     OFTE *fd[NR_FD];
+    iNode pwd;
 } fm_struct;
 
 #endif /* __FSYS_FS_TYPES_H__ */

@@ -17,6 +17,8 @@ void fm_server_thread()
 {
     Message m;
 
+    assert(sizeof(FMMessage) <= sizeof(Message)); // Message结构体不能定义得太小
+
     while (1) {
         receive(ANY, &m);
 
@@ -51,7 +53,8 @@ void fm_server_thread()
 
             switch (m.type) {
             case MSG_FM_RD: {
-                Request_key key = fs_read(msg->filename, msg->dest_addr, msg->offset, msg->len, thread);
+                Thread *user = msg->usr_pid ? find_tcb_by_pid(msg->usr_pid) : NULL;
+                Request_key key = fs_read(msg->filename, msg->dest_addr, msg->offset, msg->len, thread, user);
                 cache_request(key, msg);
                 break;
             }
@@ -81,6 +84,11 @@ void fm_server_thread()
             case MSG_FM_WRITE: {
                 Request_key key = do_write(thread, msg->fd1, (uint8_t *)msg->buf, msg->len);
                 cache_request(key, msg);
+                break;
+            }
+            case MSG_FM_CHDIR: {
+                msg->ret = do_chdir(thread, msg->filename);
+                send(m.src, &m);
                 break;
             }
             default: {

@@ -2,6 +2,7 @@
 #include "unistd.h"
 #include "string.h"
 #include "const.h"
+#include "ksh.h"
 
 char logo[] = {
   0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x5f, 0x20, 0x20, 0x5f, 0x20,
@@ -42,36 +43,24 @@ char logo[] = {
 uint8_t buf[MAX_LEN];
 uint8_t path[MAX_LEN];
 
-static inline
-bool isChar(char c)
-{
-    if ((c >= 'a' && c <= 'z') ||
-        (c >= 'A' && c <= 'Z') ||
-        (c >= '0' && c <= '9') ||
-        c == '/' || c == '.') {
-        return true;
-    }
-    return false;
-}
-
 char *parse(uint8_t *buf, void *argv)
 {
     char *p = (char *)buf;
 
-    while (!isChar(*p) && *p != '\0') *(p++) = '\0';
+    while (!isPathChar(*p) && *p != '\0') *(p++) = '\0';
 
     char *q = p;
-    while (isChar(*q)) q++;
+    while (isPathChar(*q)) q++;
 
     bool flag = false;
     char **t = (char **)argv;
 
     while (*q != '\0') {
-        if (!flag && isChar(*q)) {
+        if (!flag && isPathChar(*q)) {
             *(t++) = q;
         }
 
-        if (isChar(*q)) {
+        if (isPathChar(*q)) {
             flag = true;
         } else {
             *q = '\0';
