@@ -126,20 +126,6 @@ FI *open_file(iNode *inode)
     return NULL;
 }
 
-int do_chdir(Thread *thread, const char *filename)
-{
-    Message m;
-    FSYSMessage *msg = (FSYSMessage *)&m;
-    msg->header.type = MSG_FSYS_CHDIR;
-    msg->req_pid = thread->pid;
-    msg->filename = filename;
-
-    send(FSYSD, &m);
-    receive_fsys_block(MSG_FSYS_CHDIR, &m);
-
-    return msg->ret;
-}
-
 int do_open(Thread *thread, const char* filename)
 {
     assert(thread->fm_struct);
@@ -356,4 +342,37 @@ void exit_fm(Thread *thread)
     for (; i < NR_FD; ++i) {
         do_close(thread, i);
     }
+}
+
+Request_key do_chdir(Thread *thread, const char *path)
+{
+    Message m;
+    FSYSMessage *msg = (FSYSMessage *)&m;
+    msg->header.type = MSG_FSYS_CHDIR;
+    msg->req_pid = thread->pid;
+    msg->filename = path;
+
+    send(FSYSD, &m);
+
+    Request_key key;
+    key.type = REQ_FSYS;
+    key.key.fsys.req_pid = thread->pid;
+    return key;
+}
+
+Request_key do_lsdir(Thread *thread, const char *path, uint8_t *buf)
+{
+    Message m;
+    FSYSMessage *msg = (FSYSMessage *)&m;
+    msg->header.type = MSG_FSYS_LSDIR;
+    msg->req_pid = thread->pid;
+    msg->filename = path;
+    msg->buf = buf;
+
+    send(FSYSD, &m);
+
+    Request_key key;
+    key.type = REQ_FSYS;
+    key.key.fsys.req_pid = thread->pid;
+    return key;
 }

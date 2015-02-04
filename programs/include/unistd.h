@@ -26,5 +26,6 @@ int read(int fd, uint8_t *buf, int len);
 int write(int fd, uint8_t *buf, int len);
 
 int chdir(const char *path);
+int lsdir(const char *path, uint8_t *buf);
 
 #endif /* __UNISTD_H__ */

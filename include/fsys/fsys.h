@@ -23,6 +23,7 @@ int do_lseek(Thread *thread, int fd, int offset, int whence);
 int do_dup(Thread *thread, int oldfd);
 int do_dup2(Thread *thread, int oldfd, int newfd);
 int do_pipe(Thread *thread, int pipefd[2]);
-int do_chdir(Thread *thread, const char *filename);
+Request_key do_chdir(Thread *thread, const char *path);
+Request_key do_lsdir(Thread *thread, const char *path, uint8_t *buf);
 
 #endif /* __FSYS_FSYS_H__ */

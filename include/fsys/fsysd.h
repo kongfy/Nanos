@@ -6,6 +6,7 @@
 #define MSG_FSYS_READ_BY_FILENAME 5
 #define MSG_FSYS_INODE_FOR_FILENAME 6
 #define MSG_FSYS_CHDIR 7
+#define MSG_FSYS_LSDIR 8
 
 typedef struct FSYSMessage {
     MsgHead header;  // header与Message的头部定义保持一致即可(src, dst, type)

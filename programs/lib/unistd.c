@@ -76,3 +76,8 @@ int chdir(const char *path)
 {
     return syscall(SYS_CHDIR, path);
 }
+
+int lsdir(const char *path, uint8_t *buf)
+{
+    return syscall(SYS_LSDIR, path, buf);
+}

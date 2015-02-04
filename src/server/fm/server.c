@@ -87,8 +87,13 @@ void fm_server_thread()
                 break;
             }
             case MSG_FM_CHDIR: {
-                msg->ret = do_chdir(thread, msg->filename);
-                send(m.src, &m);
+                Request_key key = do_chdir(thread, msg->filename);
+                cache_request(key, msg);
+                break;
+            }
+            case MSG_FM_LSDIR: {
+                Request_key key = do_lsdir(thread, msg->filename, (uint8_t *)msg->buf);
+                cache_request(key, msg);
                 break;
             }
             default: {

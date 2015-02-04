@@ -7,7 +7,8 @@ extern Device *fsys_dev;
 
 iNode fsys_path_to_inode(const char *filename, Thread *thread, iNode *pwd);
 size_t fsys_read_by_filename(const char *filename, uint8_t *buf, off_t offset, size_t len, Thread *thread, iNode *pwd);
-int fsys_chdir(const char *filename, Thread *thread);
+int fsys_chdir(const char *path, Thread *thread);
+int fsys_lsdir(const char *path, uint8_t *buf, Thread *thread);
 
 void fsysd()
 {
@@ -44,6 +45,11 @@ void fsysd()
             }
             case MSG_FSYS_CHDIR: {
                 msg->ret = fsys_chdir(msg->filename, thread);
+                send(m.src, &m);
+                break;
+            }
+            case MSG_FSYS_LSDIR: {
+                msg->ret = fsys_lsdir(msg->filename, msg->buf, thread);
                 send(m.src, &m);
                 break;
             }

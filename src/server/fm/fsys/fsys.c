@@ -170,11 +170,11 @@ size_t fsys_read_by_filename(const char *filename, uint8_t *buf, off_t offset, s
     return count;
 }
 
-int fsys_chdir(const char *filename, Thread *thread)
+int fsys_chdir(const char *path, Thread *thread)
 {
     assert(thread->fm_struct);
 
-    iNode inode = fsys_path_to_inode(filename, thread, &thread->fm_struct->pwd);
+    iNode inode = fsys_path_to_inode(path, thread, &thread->fm_struct->pwd);
     if (inode.index < 0) {
         // not found
         return FILENOTFOUND;
@@ -187,4 +187,40 @@ int fsys_chdir(const char *filename, Thread *thread)
 
     thread->fm_struct->pwd = inode;
     return 0;
+}
+
+int fsys_lsdir(const char *path, uint8_t *buf, Thread *thread)
+{
+    assert(thread->fm_struct);
+
+    iNode inode = fsys_path_to_inode(path, thread, &thread->fm_struct->pwd);
+    if (inode.index < 0) {
+        // not found
+        return FILENOTFOUND;
+    }
+
+    if (inode.entry.type != DIRECTORY) {
+        // is not a directroy
+        return ISNDIRECTORY;
+    }
+
+    dir_entry *dest = (dir_entry *)buf;
+    int total = inode.entry.size / sizeof(dir_entry);
+    int blk;
+
+    for (blk = 0; blk < inode.entry.blks; ++blk) {
+        read_block(get_blk_for_inode(blk, &inode.entry), block_data);
+        dir_entry *dir_p = (dir_entry *)block_data;
+
+        while ((void *)(dir_p+1) < (void*)&block_data[BLK_SIZE]) {
+            // copy first
+            copy_from_kernel(thread, dest++, dir_p++, sizeof(dir_entry));
+            total--;
+
+            if (total == 0) break;
+        }
+        if (total == 0) break;
+    }
+
+    return inode.entry.size / sizeof(dir_entry);
 }
