@@ -1,7 +1,7 @@
 #ifndef __DIRENT_H__
 #define __DIRENT_H__
 
-#define MAX_ENTRY 32
+#define MAX_ENTRY 512
 
 typedef struct dirent {
     char filename[32];

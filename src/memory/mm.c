@@ -128,8 +128,8 @@ void do_mmap(Thread *thread, uint32_t vaddr, uint32_t len, uint32_t read_write)
     while (taddr < vaddr + len) {
         uint32_t pdir_idx, ptable_idx;
 
-        pdir_idx = vaddr >> 22;
-        ptable_idx = (vaddr >> 12) & 0x3ff;
+        pdir_idx = taddr >> 22;
+        ptable_idx = (taddr >> 12) & 0x3ff;
 
         PDE *phy_pdir = (PDE *)va_to_pa(&pdir[thread->pid]);
         PDE *pde = &phy_pdir[pdir_idx];
