@@ -1,7 +1,8 @@
 #include "stdio.h"
 #include "dirent.h"
+#include "const.h"
 
-DIR g_dir;
+static DIR dir;
 
 int main(int argc, char *argv[])
 {
@@ -12,7 +13,7 @@ int main(int argc, char *argv[])
         pathname = argv[0];
     }
 
-    int err = opendir(pathname, &g_dir);
+    int err = opendir(pathname, &dir);
     if (err < 0) {
         if (err == -1) {
             printf("ls: %s: No such file or directory\n", pathname);
@@ -21,7 +22,7 @@ int main(int argc, char *argv[])
         }
     } else {
         struct dirent *entry;
-        while ((entry = readdir(&g_dir))) {
+        while ((entry = readdir(&dir)) != NULL) {
             printf("%s\n", entry->filename);
         }
     }
