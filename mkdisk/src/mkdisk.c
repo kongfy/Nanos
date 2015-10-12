@@ -26,7 +26,7 @@ MKDError make_dir(const char *path, const char *filename, int parent_inode)
     while ((dirp = readdir(dp)) != NULL) {
         sprintf(subpath, "%s/%s", path, dirp->d_name);
 
-        if (lstat(subpath, &statbuf) < 0) {
+        if (stat(subpath, &statbuf) < 0) {
             return ESTAT;
         }
 
@@ -41,6 +41,15 @@ MKDError make_dir(const char *path, const char *filename, int parent_inode)
                 return err;
             };
         } else if (S_ISREG(statbuf.st_mode)) {
+            // skip mac os spec files
+            if (strcmp(dirp->d_name, ".DS_Store") == 0)
+                continue;
+            // skip *.o and *.d files
+            int len = strlen(dirp->d_name);
+            if (dirp->d_name[len - 2] == '.'
+                && (dirp->d_name[len - 1] == 'o' || dirp->d_name[len - 1] == 'd'))
+                continue;
+
             sprintf(subpath, "%s/%s", path, dirp->d_name);
             printf("file : %s\n", subpath);
 

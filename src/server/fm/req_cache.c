@@ -57,8 +57,7 @@ void reply(Request_key key, uint32_t ret)
     for (index = 0; index < MAX_REQ; ++index) {
         uint32_t mask = 1U << (index % 32);
         if (map[index >> 5] & mask) {
-            if (compare_key(&key, &(buffer[index].key)))
-            {
+            if (compare_key(&key, &(buffer[index].key))) {
                 Message m;
                 FMMessage *msg = (FMMessage *)&m;
 

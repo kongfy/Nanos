@@ -2,9 +2,9 @@
 #include "hal.h"
 
 #define INODE_MAP 0
-#define INODE (INODE_MAP + ((INODE_NUM >> 3) / BLK_SIZE + 1) * BLK_SIZE)
-#define BLK_MAP (INODE + (sizeof(iNode_entry) * INODE_NUM / BLK_SIZE + 1) * BLK_SIZE)
-#define BLOCK (BLK_MAP + ((BLK_NUM >> 3) / BLK_SIZE + 1) * BLK_SIZE)
+#define INODE (INODE_MAP + (((INODE_NUM >> 3) - 1) / BLK_SIZE + 1) * BLK_SIZE)
+#define BLK_MAP (INODE + ((sizeof(iNode_entry) * INODE_NUM - 1) / BLK_SIZE + 1) * BLK_SIZE)
+#define BLOCK (BLK_MAP + (((BLK_NUM >> 3) - 1) / BLK_SIZE + 1) * BLK_SIZE)
 #define END (BLOCK + BLK_SIZE * BLK_NUM)
 
 Device *fsys_dev;
