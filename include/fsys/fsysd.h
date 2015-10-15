@@ -7,12 +7,14 @@
 #define MSG_FSYS_INODE_FOR_FILENAME 6
 #define MSG_FSYS_CHDIR 7
 #define MSG_FSYS_LSDIR 8
+#define MSG_FSYS_MKDIR 9
 
 typedef struct FSYSMessage {
     MsgHead header;  // header与Message的头部定义保持一致即可(src, dst, type)
     pid_t req_pid;
     const char *filename; // Warning: DO NOT change the memory before the operation completed!
-    iNode *inode, *pwd;
+    iNode *inode;
+    int pwd;
     uint8_t *buf;
     off_t offset;
     size_t len;

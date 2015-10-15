@@ -53,12 +53,14 @@ void fm_server_thread()
 
             switch (m.type) {
             case MSG_FM_RD: {
+                // ONLY used by pm to read off ELF header from disk
                 Thread *user = msg->usr_pid ? find_tcb_by_pid(msg->usr_pid) : NULL;
                 Request_key key = fs_read(msg->filename, msg->dest_addr, msg->offset, msg->len, thread, user);
                 cache_request(key, msg);
                 break;
             }
             case MSG_FM_WR:
+                // better not be implement
                 break;
             case MSG_FM_INIT: {
                 init_fm_tty(thread, msg->tty);
@@ -93,6 +95,11 @@ void fm_server_thread()
             }
             case MSG_FM_LSDIR: {
                 Request_key key = do_lsdir(thread, msg->filename, (uint8_t *)msg->buf);
+                cache_request(key, msg);
+                break;
+            }
+            case MSG_FM_MKDIR: {
+                Request_key key = do_mkdir(thread, msg->filename);
                 cache_request(key, msg);
                 break;
             }

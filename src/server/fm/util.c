@@ -52,6 +52,7 @@ FI* get_free_file_table()
     return NULL;
 }
 
+// ONLY used by path_to_inode
 static inline
 void receive_fsys_block(int type, Message *m)
 {
@@ -83,9 +84,9 @@ iNode path_to_inode(const char *filename, Thread *thread)
     msg->inode = &temp;
     msg->filename = filename;
     if (thread && thread->fm_struct) {
-        msg->pwd = &thread->fm_struct->pwd;
+        msg->pwd = thread->fm_struct->pwd;
     } else {
-        msg->pwd = NULL;
+        msg->pwd = 0;
     }
 
     send(FSYSD, &m);
@@ -94,12 +95,7 @@ iNode path_to_inode(const char *filename, Thread *thread)
     return temp;
 }
 
-// non-blocking
-/* static */
-/* void read_from_fsys(const iNode *inode, uint8_t *buf, off_t offset, size_t len, Thread *thread) */
-/* { */
-/* } */
-
+// ONLY used by pm to read off ELF header from disk
 Request_key fs_read(const char *filename, uint8_t *buf, off_t offset, size_t len, Thread *thread, Thread *user)
 {
     Message m;
@@ -110,7 +106,7 @@ Request_key fs_read(const char *filename, uint8_t *buf, off_t offset, size_t len
     msg->buf = buf;
     msg->offset = offset;
     msg->len = len;
-    msg->pwd = user ? &user->fm_struct->pwd : NULL;
+    msg->pwd = user ? user->fm_struct->pwd : 0;
 
     send(FSYSD, &m);
 
@@ -295,7 +291,7 @@ int do_pipe(Thread *Thread, int pipefd[2])
 void init_fm_tty(Thread *thread, int tty)
 {
     thread->fm_struct = &fms[thread->pid];
-    thread->fm_struct->pwd = path_to_inode("/", NULL);
+    thread->fm_struct->pwd = 0; // hard code 0 for root path, BAD style
 
     char name[] = "tty*";
     Device *dev;
@@ -375,4 +371,20 @@ Request_key do_lsdir(Thread *thread, const char *path, uint8_t *buf)
     key.type = REQ_FSYS;
     key.key.fsys.req_pid = thread->pid;
     return key;
+}
+
+Request_key do_mkdir(Thread *thread, const char *path)
+{
+    Message m;
+    FSYSMessage *msg = (FSYSMessage *)&m;
+    msg->header.type = MSG_FSYS_MKDIR;
+    msg->req_pid = thread->pid;
+    msg->filename = path;
+    send(FSYSD, &m);
+
+    Request_key key;
+    key.type = REQ_FSYS;
+    key.key.fsys.req_pid = thread->pid;
+    return key;
+
 }

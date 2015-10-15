@@ -7,10 +7,10 @@ static DIR dir;
 int main(int argc, char *argv[])
 {
     char *pathname;
-    if (argc == 0) {
+    if (argc == 1) {
         pathname = ".";
     } else {
-        pathname = argv[0];
+        pathname = argv[1];
     }
 
     int err = opendir(pathname, &dir);

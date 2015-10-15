@@ -22,5 +22,6 @@ uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arg3);
 #define SYS_WRITE  17
 #define SYS_CHDIR  18
 #define SYS_LSDIR  19
+#define SYS_MKDIR  20
 
 #endif /* __SYSCALL_H__ */

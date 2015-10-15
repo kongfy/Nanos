@@ -43,25 +43,33 @@ char logo[] = {
 uint8_t buf[MAX_LEN];
 uint8_t path[MAX_LEN];
 
-char *parse(uint8_t *buf, void *argv)
+// return argc
+int parse(uint8_t *buf, void *argv)
 {
+    int argc = 0;
     char *p = (char *)buf;
-
-    while (!isPathChar(*p) && *p != '\0') *(p++) = '\0';
-
-    char *q = p;
-    while (isPathChar(*q)) q++;
-
-    bool flag = false;
     char **t = (char **)argv;
 
-    while (*q != '\0') {
-        if (!flag && isPathChar(*q)) {
-            *(t++) = q;
-        }
+    while (is_blank_char(*p) && *p != '\0') *(p++) = '\0';
+    *(t++) = p;
 
-        if (isPathChar(*q)) {
-            flag = true;
+    char *q = p;
+    while (!is_blank_char(*q) && *q != '\0') q++;
+
+    if (p != q) {
+        argc = 1;
+    } else {
+        return 0;
+    }
+
+    bool flag = false;
+    while (*q != '\0') {
+        if (!is_blank_char(*q)) {
+            if (!flag) {
+                *(t++) = q;
+                argc++;
+                flag = true;
+            }
         } else {
             *q = '\0';
             flag = false;
@@ -69,34 +77,34 @@ char *parse(uint8_t *buf, void *argv)
         q++;
     }
 
-    return p;
+    return argc;
 }
 
-char *path_extend(char *filename)
+char *path_extend(char *cmd)
 {
-    int len = strlen(filename);
+    int len = strlen(cmd);
     if (len == 0) {
-        return filename;
+        return cmd;
     }
 
     if (len >= 1) {
-        if (filename[0] == '/') {
-            return filename;
+        if (cmd[0] == '/') {
+            return cmd;
         }
     }
 
     if (len >= 2) {
-        if (filename[0] == '.' && filename[1] == '/') {
-            return filename;
+        if (cmd[0] == '.' && cmd[1] == '/') {
+            return cmd;
         }
     }
 
     strcpy((char *)path, "/bin/");
-    strcpy((char *)&path[5], filename);
+    strcpy((char *)&path[5], cmd);
     return (char *)path;
 }
 
-bool buildin(char *filename, char *argv[]);
+bool buildin(int argc,  char *argv[]);
 
 int main(int argc, char *argv[])
 {
@@ -112,28 +120,27 @@ int main(int argc, char *argv[])
         int i;
         for (i = 0; i < MAXARG; ++i) argv[i] = NULL;
 
-        char *filename = parse(buf, argv);
+        int argc = parse(buf, argv);
 
-        if (!strlen(filename)) {
-            continue;
-        }
+        if (!argc) continue;
+        char *cmd = argv[0];
 
         // check build-in first
-        if (buildin(filename, argv)) {
+        if (buildin(argc, argv)) {
             continue;
         }
 
-        filename = path_extend(filename);
+        cmd = path_extend(cmd);
 
         pid_t pid = fork();
         if (pid == 0) {
-            int err = exec(filename, argv);
+            int err = exec(cmd, argv);
             if (err == -1) {
-                printf("-ksh: %s: No such file or directory\n", filename);
+                printf("-ksh: %s: No such file or directory\n", cmd);
             } else if (err == -2) {
-                printf("-ksh: %s: is a directory\n", filename);
+                printf("-ksh: %s: is a directory\n", cmd);
             } else if (err == -500) {
-                printf("-ksh: %s: Can not be excuted\n", filename);
+                printf("-ksh: %s: Can not be excuted\n", cmd);
             }
         } else {
             waitpid(pid);

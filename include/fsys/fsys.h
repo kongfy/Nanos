@@ -25,5 +25,6 @@ int do_dup2(Thread *thread, int oldfd, int newfd);
 int do_pipe(Thread *thread, int pipefd[2]);
 Request_key do_chdir(Thread *thread, const char *path);
 Request_key do_lsdir(Thread *thread, const char *path, uint8_t *buf);
+Request_key do_mkdir(Thread *thread, const char *path);
 
 #endif /* __FSYS_FSYS_H__ */

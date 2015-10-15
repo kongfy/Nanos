@@ -81,3 +81,8 @@ int lsdir(const char *path, uint8_t *buf)
 {
     return syscall(SYS_LSDIR, path, buf);
 }
+
+int mkdir(const char *path)
+{
+    return syscall(SYS_MKDIR, path);
+}

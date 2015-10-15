@@ -21,5 +21,6 @@ int syscall(int id, ...);
 #define SYS_WRITE  17
 #define SYS_CHDIR  18
 #define SYS_LSDIR  19
+#define SYS_MKDIR  20
 
 #endif /* __SYSCALL_H__ */

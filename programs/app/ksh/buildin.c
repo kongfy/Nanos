@@ -5,15 +5,20 @@
 #include "unistd.h"
 
 static
-void cd(char *path)
+void cd(int argc, char *argv[])
 {
+    if (argc < 2) {
+        return;
+    }
+
+    char *path = argv[1];
     if (path == NULL) {
         return;
     }
 
-    while (path != '\0' && !isPathChar(*path)) *(path++) = '\0';
+    while (*path != '\0' && is_blank_char(*path)) *(path++) = '\0';
     int len = strlen(path);
-    while (len > 0 && !isPathChar(path[len-1])) path[len-- - 1] = '\0';
+    while (len > 0 && is_blank_char(*path)) path[len-- - 1] = '\0';
 
     int err = chdir(path);
     if (err == -1) {
@@ -23,10 +28,12 @@ void cd(char *path)
     }
 }
 
-bool buildin(char *filename, char *argv[])
+bool buildin(int argc, char *argv[])
 {
-    if (strcmp(filename, "cd") == 0) {
-        cd(argv[0]);
+    char *cmd = argv[0];
+
+    if (strcmp(cmd, "cd") == 0) {
+        cd(argc, argv);
         return true;
     }
 

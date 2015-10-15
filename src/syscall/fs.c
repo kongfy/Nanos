@@ -148,3 +148,17 @@ int sys_lsdir(const char *path, uint8_t *buf)
 
     return msg->ret;
 }
+
+int sys_mkdir(const char *path)
+{
+    Message m;
+    FMMessage *msg = (FMMessage *)&m;
+    msg->header.type = MSG_FM_MKDIR;
+    msg->req_pid = current->pid;
+    msg->filename = path;
+
+    send(FM, &m);
+    receive(FM, &m);
+
+    return msg->ret;
+}
