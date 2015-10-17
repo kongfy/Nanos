@@ -22,5 +22,6 @@ int syscall(int id, ...);
 #define SYS_CHDIR  18
 #define SYS_LSDIR  19
 #define SYS_MKDIR  20
+#define SYS_RMDIR  21
 
 #endif /* __SYSCALL_H__ */

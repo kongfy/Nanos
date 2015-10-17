@@ -56,6 +56,11 @@ void fsysd()
                 send(m.src, &m);
                 break;
             }
+            case MSG_FSYS_RMDIR: {
+                msg->ret = fsys_rmdir(msg->filename, thread);
+                send(m.src, &m);
+                break;
+            }
             default:
                 assert(0);
             }

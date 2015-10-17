@@ -86,3 +86,8 @@ int mkdir(const char *path)
 {
     return syscall(SYS_MKDIR, path);
 }
+
+int rmdir(const char *path)
+{
+    return syscall(SYS_RMDIR, path);
+}

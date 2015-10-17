@@ -10,7 +10,14 @@
 #define L3_BLK (L2_BLK + BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK)
 
 static uint8_t block_data[BLK_SIZE], block_index[BLK_SIZE];
+static uint8_t block_index_l2[BLK_SIZE], block_index_l3[BLK_SIZE]; // used in erase_file
 static char s_buf[MAX_PATH_LEN];
+
+static inline
+int min(int a, int b)
+{
+    return a < b ? a : b;
+}
 
 int get_blk_for_inode(uint32_t blk, iNode_entry *inode)
 {
@@ -108,6 +115,92 @@ int add_blk_to_inode(iNode_entry *inode)
     return blk;
 }
 
+void erase_file(iNode *inode)
+{
+    int blks = inode->entry.blks;
+
+    // clear direct blocks
+    int d_index;
+    int d_t = min(DIRECT_BLK, blks);
+
+    for (d_index = 0; d_index < d_t; ++d_index) {
+        clear_block_map(inode->entry.index[d_index]);
+    }
+
+    if (blks > DIRECT_BLK) {
+        // clear L1
+        int l1_index;
+        int l1_t = min(L1_BLK, blks) - DIRECT_BLK;
+
+        read_block(inode->entry.index[DIRECT_BLK], block_index);
+        for (l1_index = 0; l1_index < l1_t; ++l1_index) {
+            clear_block_map(*((int *)block_index + l1_index));
+        }
+
+        clear_block_map(inode->entry.index[DIRECT_BLK]);
+    }
+
+    if (blks > L1_BLK) {
+        // clear L2
+        int l1_index;
+        int l1_t = (min(L2_BLK, blks) - L1_BLK - 1) / BLOCKS_PER_BLOCK + 1;
+
+        read_block(inode->entry.index[DIRECT_BLK + 1], block_index);
+        for (l1_index = 0; l1_index < l1_t; ++l1_index) {
+            int l2_index;
+            int l2_t = min(L1_BLK
+                           + (l1_index + 1) * BLOCKS_PER_BLOCK, blks)
+                - (L1_BLK
+                   + l1_index * BLOCKS_PER_BLOCK);
+
+            read_block(*((int *)block_index + l1_index), block_index_l2);
+            for (l2_index = 0; l2_index < l2_t; ++l2_index) {
+                clear_block_map(*((int *)block_index_l2 + l2_index));
+            }
+
+            clear_block_map(*((int *)block_index + l1_index));
+        }
+        clear_block_map(inode->entry.index[DIRECT_BLK + 1]);
+    }
+
+    if (blks > L2_BLK) {
+        // clear L3
+        int l1_index;
+        int l1_t = (min(L3_BLK, blks) - L2_BLK - 1)
+            / (BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK) + 1;
+
+        read_block(inode->entry.index[DIRECT_BLK + 2], block_index);
+        for (l1_index = 0; l1_index < l1_t; ++l1_index) {
+            int l2_index;
+            int l2_t = min(L2_BLK
+                           + (l1_index + 1) * BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK, blks)
+                - (L2_BLK
+                   + l1_index * BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK);
+
+            read_block(*((int *)block_index + l1_index), block_index_l2);
+            for (l2_index = 0; l2_index < l2_t; ++l2_index) {
+                int l3_index;
+                int l3_t = min(L2_BLK
+                               + l1_index * BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK
+                               + (l2_index + 1) * BLOCKS_PER_BLOCK, blks)
+                    - (L2_BLK
+                       + l1_index * BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK
+                       + l2_index * BLOCKS_PER_BLOCK);
+
+                read_block(*((int *)block_index_l2 + l2_index), block_index_l3);
+                for (l3_index = 0; l3_index < l3_t; ++l3_index) {
+                    clear_block_map(*((int *)block_index_l3 + l3_index));
+                }
+
+                clear_block_map(*((int *)block_index_l2 + l2_index));
+            }
+
+            clear_block_map(*((int *)block_index + l1_index));
+        }
+        clear_block_map(inode->entry.index[DIRECT_BLK + 2]);
+    }
+}
+
 iNode inode_for_root()
 {
     iNode temp = load_inode(0); // root
@@ -131,20 +224,16 @@ iNode search_dir(char *filename, iNode *inode)
         dir_entry *dir_p = (dir_entry *)block_data;
 
         while ((void *)(dir_p+1) < (void*)&block_data[BLK_SIZE]) {
-            if (strcmp(dir_p->filename, filename) == 0) {
-                temp = load_inode(dir_p->inode);
-                break;
-            }
-            dir_p++;
-            total--;
-
             if (total == 0) {
                 break;
             }
-        }
 
-        if (total == 0) {
-            break;
+            if (strcmp(dir_p->filename, filename) == 0) {
+                temp = load_inode(dir_p->inode);
+                return temp;
+            }
+            dir_p++;
+            total--;
         }
     }
 
@@ -249,4 +338,64 @@ iNode mkdir_to_parent(char *dirname, iNode *parent)
     add_to_parent(parent, &inode, dirname);
 
     return inode;
+}
+
+int rm_from_parent(iNode *inode, iNode *parent)
+{
+    assert(parent);
+    assert(parent->index >= 0);
+    assert(parent->entry.type == DIRECTORY);
+
+    // erase from parent dir
+    int total = parent->entry.size / sizeof(dir_entry);
+    int blk;
+    for (blk = 0; blk < parent->entry.blks; ++blk) {
+        read_block(get_blk_for_inode(blk, &parent->entry), block_data);
+        dir_entry *dir_p = (dir_entry *)block_data;
+
+        while ((void *)(dir_p+1) < (void*)&block_data[BLK_SIZE]) {
+            if (total == 0) {
+                break;
+            }
+
+            if (dir_p->inode == inode->index) {
+                if (total != 1) {
+                    // swap
+                    dir_entry x = *dir_p;
+                    int last_blk = get_blk_for_inode(parent->entry.blks - 1, &parent->entry);
+                    read_block(last_blk, block_data);
+
+                    int last = (parent->entry.size / sizeof(dir_entry))
+                        % (BLK_SIZE / sizeof(dir_entry)) - 1;
+                    dir_entry y = ((dir_entry *)block_data)[last];
+
+                    ((dir_entry *)block_data)[last] = x;
+                    write_block(last_blk, block_data);
+
+                    read_block(get_blk_for_inode(blk, &parent->entry), block_data);
+                    *dir_p = y;
+                    write_block(blk, block_data);
+                }
+
+                // erase last file
+                parent->entry.size -= sizeof(dir_entry);
+                if (0 == (parent->entry.size / sizeof(dir_entry)) % (BLK_SIZE / sizeof(dir_entry))) {
+                    clear_block_map(get_blk_for_inode(parent->entry.blks - 1, &parent->entry));
+                    parent->entry.blks--;
+                }
+                save_inode(parent);
+
+                // erase file
+                erase_file(inode);
+
+                return 0;
+            }
+
+            dir_p++;
+            total--;
+        }
+    }
+
+    assert(0); // should not reach here. file not found
+    return 0;
 }

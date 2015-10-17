@@ -388,3 +388,30 @@ Request_key do_mkdir(Thread *thread, const char *path)
     return key;
 
 }
+
+Request_key do_rmdir(Thread *thread, const char *path)
+{
+    Message m;
+    FSYSMessage *msg = (FSYSMessage *)&m;
+    msg->header.type = MSG_FSYS_RMDIR;
+    msg->req_pid = thread->pid;
+    msg->filename = path;
+    send(FSYSD, &m);
+
+    Request_key key;
+    key.type = REQ_FSYS;
+    key.key.fsys.req_pid = thread->pid;
+    return key;
+
+}
+
+// call by FSYSD when remove a directory successfully
+void pwd_evacuate(int pwd)
+{
+    int i = 0;
+    for (; i < MAX_PROCESS; ++i) {
+        if (fms[i].pwd == pwd) {
+            fms[i].pwd = 0;
+        }
+    }
+}

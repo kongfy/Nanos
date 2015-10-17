@@ -15,17 +15,14 @@ int main(int argc, char *argv[])
         if (err < 0) {
             if (-1 == err) {
                 printf("mkdir: cannot create directory `%s': File exists\n", argv[i]);
-                return 1;
             } else if (-2 == err) {
                 printf("mkdir: cannot create directory `%s': No such file or directory\n", argv[i]);
-                return 2;
             } else if (-3 == err) {
                 printf("mkdir: cannot create directory `%s': Invalid directory name\n", argv[i]);
-                return 3;
             } else {
                 printf("mkdir: cannot create directory `%s': Unknown error\n", argv[i]);
-                return 9;
             }
+            return 1;
         }
     }
 

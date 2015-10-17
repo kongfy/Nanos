@@ -103,6 +103,11 @@ void fm_server_thread()
                 cache_request(key, msg);
                 break;
             }
+            case MSG_FM_RMDIR: {
+                Request_key key = do_rmdir(thread, msg->filename);
+                cache_request(key, msg);
+                break;
+            }
             default: {
                 assert(0);
             }

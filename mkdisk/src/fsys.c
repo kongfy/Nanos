@@ -26,25 +26,25 @@ int add_blk_to_inode(iNode_entry *inode)
         inode->index[inode->blks] = blk;
     } else if (inode->blks < L1_BLK) {
         if (inode->blks == DIRECT_BLK) {
-            inode->index[12] = get_free_block();
+            inode->index[DIRECT_BLK] = get_free_block();
         }
 
         int index = inode->blks - DIRECT_BLK;
-        read_block(inode->index[12], block);
+        read_block(inode->index[DIRECT_BLK], block);
         *((int*)block + index) = blk;
-        write_block(inode->index[12], block);
+        write_block(inode->index[DIRECT_BLK], block);
     } else if (inode->blks < L2_BLK) {
         if (inode->blks == L1_BLK) {
-            inode->index[13] = get_free_block();
+            inode->index[DIRECTORY + 1] = get_free_block();
         }
 
         int l1_index = (inode->blks - L1_BLK) / BLOCKS_PER_BLOCK;
         int l2_index = (inode->blks - L1_BLK) % BLOCKS_PER_BLOCK;
 
-        read_block(inode->index[13], block);
+        read_block(inode->index[DIRECT_BLK + 1], block);
         if (l2_index == 0) {
             *((int*)block + l1_index) = get_free_block();
-            write_block(inode->index[13], block);
+            write_block(inode->index[DIRECT_BLK + 1], block);
         }
 
         int index = *((int *)block + l1_index);
@@ -53,17 +53,17 @@ int add_blk_to_inode(iNode_entry *inode)
         write_block(index, block);
     } else if (inode->blks < L3_BLK) {
         if (inode->blks == L2_BLK) {
-            inode->index[14] = get_free_block();
+            inode->index[DIRECT_BLK + 2] = get_free_block();
         }
 
         int l1_index = (inode->blks - L2_BLK) / (BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK);
         int l2_index = (inode->blks - L2_BLK) % (BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK) / BLOCKS_PER_BLOCK;
         int l3_index = (inode->blks - L2_BLK) % (BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK) % BLOCKS_PER_BLOCK;
 
-        read_block(inode->index[14], block);
+        read_block(inode->index[DIRECT_BLK + 2], block);
         if (l2_index == 0 && l3_index == 0) {
             *((int*)block + l1_index) = get_free_block();
-            write_block(inode->index[14], block);
+            write_block(inode->index[DIRECT_BLK + 2], block);
         }
 
         int index = *((int *)block + l1_index);
@@ -96,17 +96,17 @@ int get_blk_for_inode(int blk, iNode_entry *inode)
         return inode->index[blk];
     } else if (blk < L1_BLK) {
         int index = blk - DIRECT_BLK;
-        read_block(inode->index[12], block);
+        read_block(inode->index[DIRECT_BLK], block);
         return *((int *)block + index);
     } else if (blk < L2_BLK) {
         int index = (blk - L1_BLK) / BLOCKS_PER_BLOCK;
-        read_block(inode->index[13], block);
+        read_block(inode->index[DIRECT_BLK + 1], block);
         read_block(*((int *)block + index), block);
         index = (blk - L1_BLK) % BLOCKS_PER_BLOCK;
         return *((int *)block + index);
     } else if (blk < L3_BLK) {
         int index = (blk - L2_BLK) / (BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK);
-        read_block(inode->index[14], block);
+        read_block(inode->index[DIRECT_BLK + 2], block);
         read_block(*((int *)block + index), block);
         index = (blk - L2_BLK) % (BLOCKS_PER_BLOCK * BLOCKS_PER_BLOCK) / BLOCKS_PER_BLOCK;
         read_block(*((int *)block + index), block);

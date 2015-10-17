@@ -2,6 +2,8 @@
 #include "charset.h"
 #include "fsys_util.h"
 
+void pwd_evacuate(int pwd);
+
 static uint8_t block_data[BLK_SIZE];
 static char s_buf[MAX_PATH_LEN];
 
@@ -126,7 +128,6 @@ int fsys_mkdir(const char *path, Thread *thread)
     }
 
     // split parent dir if exist
-    strcpy_to_kernel(thread, s_buf, (char *)path);
     iNode parent = load_inode(thread->fm_struct->pwd);
     int len = strlen(s_buf);
     int j = len - 1;
@@ -158,4 +159,56 @@ int fsys_mkdir(const char *path, Thread *thread)
     // mkdir
     inode = mkdir_to_parent(dirname, &parent);
     return inode.index > 0;
+}
+
+int fsys_rmdir(const char *path, Thread *thread)
+{
+    assert(thread->fm_struct);
+
+    strcpy_to_kernel(thread, s_buf, (char *)path);
+    iNode pwd = load_inode(thread->fm_struct->pwd);
+    iNode inode = fsys_path_to_inode(s_buf, &pwd);
+
+    if (inode.index < 0) {
+        // not exist
+        return -1;
+    }
+
+    if (inode.entry.type != DIRECTORY) {
+        return -2;
+    }
+
+    if (inode.entry.size / sizeof(dir_entry) > 2) {
+        return -3;
+    }
+
+    // split parent dir
+    iNode parent = load_inode(thread->fm_struct->pwd);
+    int len = strlen(s_buf);
+    int j = len - 1;
+    while (is_blank_char(s_buf[j]) && j >= 0) s_buf[j--] = '\0';
+    while (s_buf[j] == '/' && j >= 0) s_buf[j--] = '\0';
+    while (s_buf[j] != '/' && j >= 0) j--;
+    char *dirname = &s_buf[j + 1];
+
+    if (strcmp(dirname, ".") == 0) {
+        return -4;
+    }
+
+    if (j < 0) {
+    } else if (j == 0) {
+        parent = inode_for_root();
+    } else {
+        s_buf[j] = '\0';
+        iNode pwd = load_inode(thread->fm_struct->pwd);
+        parent = fsys_path_to_inode(s_buf, &pwd);
+    }
+
+    // rmdir
+    int err = rm_from_parent(&inode, &parent);
+    if (0 == err) {
+        pwd_evacuate(inode.index);
+    }
+
+    return err;
 }
