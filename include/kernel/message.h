@@ -10,7 +10,7 @@
 
 #include "common.h"
 
-#define ANY -1
+#define ANY -9
 #define MSG_SZ 64
 #define MSG_HWINTR -1
 

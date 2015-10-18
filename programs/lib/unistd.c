@@ -91,3 +91,7 @@ int rmdir(const char *path)
 {
     return syscall(SYS_RMDIR, path);
 }
+
+int unlink(const char *path) {
+    return syscall(SYS_UNLINK, path);
+}

@@ -21,6 +21,8 @@ int sys_chdir(const char *path);
 int sys_lsdir(const char *path, uint8_t *buf);
 int sys_mkdir(const char *path);
 int sys_rmdir(const char *path);
+int sys_unlink(const char *path);
+int sys_stat(const char *path, uint8_t *buf);
 
 uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arg3)
 {
@@ -73,6 +75,10 @@ uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arg3)
         return sys_mkdir((char *)arg1);
     case SYS_RMDIR:
         return sys_rmdir((char *)arg1);
+    case SYS_UNLINK:
+        return sys_unlink((char *)arg1);
+    case SYS_STAT:
+        return sys_stat((char *)arg1, (uint8_t *)arg2);
     default:
         printf("Undefined system call!\n");
         return -1;

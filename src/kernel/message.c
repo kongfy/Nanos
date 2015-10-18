@@ -15,6 +15,7 @@ void send(pid_t dst, Message *m)
 {
     Thread *thread = find_tcb_by_pid(dst);
     if (!thread) {
+        assert(0);
         return;
     }
 

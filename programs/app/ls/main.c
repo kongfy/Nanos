@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
         } else if (err == -3) {
             printf("ls: %s: Not a directory\n", pathname);
         }
+        return 1;
     } else {
         struct dirent *entry;
         while ((entry = readdir(&dir)) != NULL) {

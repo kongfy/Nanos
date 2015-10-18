@@ -30,6 +30,8 @@
 #define MSG_FM_LSDIR  19
 #define MSG_FM_MKDIR  20
 #define MSG_FM_RMDIR  21
+#define MSG_FM_UNLINK 22
+#define MSG_FM_STAT   23
 
 typedef struct FMMessage {
     MsgHead header;  // header与Message的头部定义保持一致即可(src, dst, type)

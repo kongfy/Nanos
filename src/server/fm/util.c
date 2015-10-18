@@ -405,6 +405,37 @@ Request_key do_rmdir(Thread *thread, const char *path)
 
 }
 
+Request_key do_unlink(Thread *thread, const char *path)
+{
+    Message m;
+    FSYSMessage *msg = (FSYSMessage *)&m;
+    msg->header.type = MSG_FSYS_UNLINK;
+    msg->req_pid = thread->pid;
+    msg->filename = path;
+    send(FSYSD, &m);
+
+    Request_key key;
+    key.type = REQ_FSYS;
+    key.key.fsys.req_pid = thread->pid;
+    return key;
+}
+
+Request_key do_stat(Thread *thread, const char *path, struct stat *buf)
+{
+    Message m;
+    FSYSMessage *msg = (FSYSMessage *)&m;
+    msg->header.type = MSG_FSYS_STAT;
+    msg->req_pid = thread->pid;
+    msg->filename = path;
+    msg->buf = (uint8_t *)buf;
+    send(FSYSD, &m);
+
+    Request_key key;
+    key.type = REQ_FSYS;
+    key.key.fsys.req_pid = thread->pid;
+    return key;
+}
+
 // call by FSYSD when remove a directory successfully
 void pwd_evacuate(int pwd)
 {

@@ -2,6 +2,7 @@
 #include "unistd.h"
 #include "string.h"
 #include "const.h"
+#include "stdio.h"
 
 int opendir(const char *pathname, DIR *dp)
 {

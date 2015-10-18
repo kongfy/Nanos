@@ -372,9 +372,10 @@ int rm_from_parent(iNode *inode, iNode *parent)
                     ((dir_entry *)block_data)[last] = x;
                     write_block(last_blk, block_data);
 
-                    read_block(get_blk_for_inode(blk, &parent->entry), block_data);
+                    int origin_blk = get_blk_for_inode(blk, &parent->entry);
+                    read_block(origin_blk, block_data);
                     *dir_p = y;
-                    write_block(blk, block_data);
+                    write_block(origin_blk, block_data);
                 }
 
                 // erase last file

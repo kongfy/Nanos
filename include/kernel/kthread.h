@@ -39,7 +39,7 @@ typedef struct Thread
 
     // 消息信箱和信号量
     Semaphore msg_sem;
-    uint32_t msg_head, msg_tail;
+    volatile uint32_t msg_head, msg_tail;
     Message msgs[NR_MSGS];
 
     list_head runq, semq;

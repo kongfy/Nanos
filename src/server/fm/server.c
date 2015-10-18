@@ -108,6 +108,16 @@ void fm_server_thread()
                 cache_request(key, msg);
                 break;
             }
+            case MSG_FM_UNLINK: {
+                Request_key key = do_unlink(thread, msg->filename);
+                cache_request(key, msg);
+                break;
+            }
+            case MSG_FM_STAT: {
+                Request_key key = do_stat(thread, msg->filename, (struct stat *)msg->buf);
+                cache_request(key, msg);
+                break;
+            }
             default: {
                 assert(0);
             }

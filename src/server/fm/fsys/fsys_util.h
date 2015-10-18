@@ -28,5 +28,7 @@ int fsys_chdir(const char *path, Thread *thread);
 int fsys_lsdir(const char *path, uint8_t *buf, Thread *thread);
 int fsys_mkdir(const char *path, Thread *thread);
 int fsys_rmdir(const char *path, Thread *thread);
+int fsys_unlink(const char *path, Thread *thread);
+int fsys_stat(const char *path, struct stat *buf, Thread *thread);
 
 #endif /* FSYS_UTIL_H */

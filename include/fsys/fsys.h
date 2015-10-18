@@ -27,5 +27,7 @@ Request_key do_chdir(Thread *thread, const char *path);
 Request_key do_lsdir(Thread *thread, const char *path, uint8_t *buf);
 Request_key do_mkdir(Thread *thread, const char *path);
 Request_key do_rmdir(Thread *thread, const char *path);
+Request_key do_unlink(Thread *thread, const char *path);
+Request_key do_stat(Thread *thread, const char *path, struct stat *buf);
 
 #endif /* __FSYS_FSYS_H__ */

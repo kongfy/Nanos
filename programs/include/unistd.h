@@ -29,5 +29,6 @@ int chdir(const char *path);
 int lsdir(const char *path, uint8_t *buf);
 int mkdir(const char *path);
 int rmdir(const char *path);
+int unlink(const char *path);
 
 #endif /* __UNISTD_H__ */

@@ -61,6 +61,16 @@ void fsysd()
                 send(m.src, &m);
                 break;
             }
+            case MSG_FSYS_UNLINK: {
+                msg->ret = fsys_unlink(msg->filename, thread);
+                send(m.src, &m);
+                break;
+            }
+            case MSG_FSYS_STAT: {
+                msg->ret = fsys_stat(msg->filename, (struct stat*)msg->buf, thread);
+                send(m.src, &m);
+                break;
+            }
             default:
                 assert(0);
             }

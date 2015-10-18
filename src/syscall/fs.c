@@ -176,3 +176,32 @@ int sys_rmdir(const char *path)
 
     return msg->ret;
 }
+
+int sys_unlink(const char *path)
+{
+    Message m;
+    FMMessage *msg = (FMMessage *)&m;
+    msg->header.type = MSG_FM_UNLINK;
+    msg->req_pid = current->pid;
+    msg->filename = path;
+
+    send(FM, &m);
+    receive(FM, &m);
+
+    return msg->ret;
+}
+
+int sys_stat(const char *path, uint8_t *buf)
+{
+    Message m;
+    FMMessage *msg = (FMMessage *)&m;
+    msg->header.type = MSG_FM_STAT;
+    msg->req_pid = current->pid;
+    msg->filename = path;
+    msg->buf = (uint32_t)buf;
+
+    send(FM, &m);
+    receive(FM, &m);
+
+    return msg->ret;
+}

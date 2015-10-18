@@ -5,7 +5,7 @@
 
 typedef struct Semaphore
 {
-    int count;
+    volatile int count;
     list_head queue;
 } Semaphore;
 

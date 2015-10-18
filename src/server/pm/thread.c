@@ -103,12 +103,12 @@ uint32_t init_with_elf(Thread *thread, const char *filename, struct ELFHeader *e
         assert(fmmsg->ret == ph->filesz);
     }
 
-    // User stack, only one page (4 KB) memory by default
+    // User stack, only 64 page (256 KB) memory by default
     // Please be careful!
     m.type = MSG_MM_MMAP;
     mmmsg->pid = thread->pid;
-    mmmsg->vaddr = KOFFSET - PAGE_SIZE; /* virtual address */
-    mmmsg->len = PAGE_SIZE;
+    mmmsg->vaddr = KOFFSET - 64 * PAGE_SIZE; /* virtual address */
+    mmmsg->len = 64 * PAGE_SIZE;
     mmmsg->read_write = 1; // stack pages are always writeable.
 
     send(MM, &m);

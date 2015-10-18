@@ -184,6 +184,7 @@ int fsys_rmdir(const char *path, Thread *thread)
 
     // split parent dir
     iNode parent = load_inode(thread->fm_struct->pwd);
+
     int len = strlen(s_buf);
     int j = len - 1;
     while (is_blank_char(s_buf[j]) && j >= 0) s_buf[j--] = '\0';
@@ -211,4 +212,71 @@ int fsys_rmdir(const char *path, Thread *thread)
     }
 
     return err;
+}
+
+int fsys_unlink(const char *path, Thread *thread)
+{
+    assert(thread->fm_struct);
+
+    strcpy_to_kernel(thread, s_buf, (char *)path);
+    iNode pwd = load_inode(thread->fm_struct->pwd);
+    iNode inode = fsys_path_to_inode(s_buf, &pwd);
+
+    if (inode.index < 0) {
+        // not exist
+        return -1;
+    }
+
+    if (inode.entry.type != PLAIN) {
+        return -2;
+    }
+
+    // split parent dir
+    iNode parent = load_inode(thread->fm_struct->pwd);
+    int len = strlen(s_buf);
+    int j = len - 1;
+    while (is_blank_char(s_buf[j]) && j >= 0) s_buf[j--] = '\0';
+    while (s_buf[j] == '/' && j >= 0) s_buf[j--] = '\0';
+    while (s_buf[j] != '/' && j >= 0) j--;
+
+    if (j < 0) {
+    } else if (j == 0) {
+        parent = inode_for_root();
+    } else {
+        s_buf[j] = '\0';
+        iNode pwd = load_inode(thread->fm_struct->pwd);
+        parent = fsys_path_to_inode(s_buf, &pwd);
+    }
+
+    // unlink
+    int err = rm_from_parent(&inode, &parent);
+    if (0 == err) {
+        pwd_evacuate(inode.index);
+    }
+
+    return err;
+}
+
+int fsys_stat(const char *path, struct stat *buf, Thread *thread)
+{
+    assert(thread->fm_struct);
+
+    strcpy_to_kernel(thread, s_buf, (char *)path);
+    iNode pwd = load_inode(thread->fm_struct->pwd);
+    iNode inode = fsys_path_to_inode(s_buf, &pwd);
+
+    if (inode.index < 0) {
+        // not exist
+        return -1;
+    }
+
+    struct stat temp;
+    temp.type = inode.entry.type;
+    temp.size = inode.entry.size;
+    temp.blks = inode.entry.blks;
+    temp.dev_id = inode.entry.dev_id;
+
+    copy_from_kernel(thread, (uint8_t *)buf, &temp, sizeof(struct stat));
+
+    return 0;
 }

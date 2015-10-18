@@ -64,4 +64,14 @@ typedef struct fm_struct
     int pwd;
 } fm_struct;
 
+// user space data structure for inode
+// used by stat syscall to return info
+struct stat
+{
+    size_t size;
+    size_t blks;
+    iNode_type type;
+    int dev_id;
+};
+
 #endif /* __FSYS_FS_TYPES_H__ */
