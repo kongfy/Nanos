@@ -16,6 +16,7 @@ struct stat
     size_t blks;
     iNode_type type;
     int dev_id;
+    int inode;
 };
 
 int stat(const char *path, struct stat *buf);

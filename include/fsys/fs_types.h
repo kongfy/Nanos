@@ -72,6 +72,7 @@ struct stat
     size_t blks;
     iNode_type type;
     int dev_id;
+    int inode;
 };
 
 #endif /* __FSYS_FS_TYPES_H__ */

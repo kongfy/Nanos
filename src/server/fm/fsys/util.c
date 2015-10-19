@@ -199,6 +199,8 @@ void erase_file(iNode *inode)
         }
         clear_block_map(inode->entry.index[DIRECT_BLK + 2]);
     }
+
+    clear_inode_map(inode->index);
 }
 
 iNode inode_for_root()

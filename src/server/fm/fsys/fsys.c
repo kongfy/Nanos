@@ -249,12 +249,7 @@ int fsys_unlink(const char *path, Thread *thread)
     }
 
     // unlink
-    int err = rm_from_parent(&inode, &parent);
-    if (0 == err) {
-        pwd_evacuate(inode.index);
-    }
-
-    return err;
+    return rm_from_parent(&inode, &parent);
 }
 
 int fsys_stat(const char *path, struct stat *buf, Thread *thread)
@@ -275,6 +270,7 @@ int fsys_stat(const char *path, struct stat *buf, Thread *thread)
     temp.size = inode.entry.size;
     temp.blks = inode.entry.blks;
     temp.dev_id = inode.entry.dev_id;
+    temp.inode = inode.index;
 
     copy_from_kernel(thread, (uint8_t *)buf, &temp, sizeof(struct stat));
 
