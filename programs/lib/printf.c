@@ -9,11 +9,29 @@
 #include "stdio.h"
 #include "unistd.h"
 
+#define NBUF 128
+
+static char cbuf[NBUF];
+static int b_index = 0;
+
 static void putchar(char ch)
 {
-    write(STDOUT_FILENO, (uint8_t *)&ch, 1);
+
+    cbuf[b_index++] = ch;
+
+    if ('\n' == ch || b_index == NBUF) {
+        write(STDOUT_FILENO, (uint8_t *)cbuf, b_index);
+        b_index = 0;
+    }
 }
 
+static
+void flush()
+{
+    if (!b_index) return;
+    write(STDOUT_FILENO, (uint8_t *)cbuf, b_index);
+    b_index = 0;
+}
 
 static int print_ctrl(const char *, void *, int *);
 
@@ -48,6 +66,7 @@ int printf(const char *format, ...)
         i++;
     }
 
+    flush();
     return char_count;
 }
 
