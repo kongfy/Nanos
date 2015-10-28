@@ -2,8 +2,6 @@
 #include "charset.h"
 #include "fsys_util.h"
 
-void pwd_evacuate(int pwd);
-
 static uint8_t block_data[BLK_SIZE];
 static char s_buf[MAX_PATH_LEN];
 
@@ -208,7 +206,7 @@ int fsys_rmdir(const char *path, Thread *thread)
     // rmdir
     int err = rm_from_parent(&inode, &parent);
     if (0 == err) {
-        pwd_evacuate(inode.index);
+        return inode.index;
     }
 
     return err;
@@ -275,4 +273,38 @@ int fsys_stat(const char *path, struct stat *buf, Thread *thread)
     copy_from_kernel(thread, (uint8_t *)buf, &temp, sizeof(struct stat));
 
     return 0;
+}
+
+int fsys_read(iNode *inode, uint8_t *buf, off_t offset, size_t len, Thread *thread)
+{
+    if (len <= 0) {
+        return 0;
+    }
+
+    if (inode->entry.type == DIRECTORY) {
+        // is a directroy
+        return ISDIRECTORY;
+    }
+
+    len = min(len, inode->entry.size - offset);
+
+    off_t p = offset;
+    size_t count = 0;
+
+    while (len > 0) {
+        uint32_t blk = p / BLK_SIZE;
+        read_block(get_blk_for_inode(blk, &inode->entry), block_data);
+
+        off_t start = p % BLK_SIZE;
+        size_t l = min(len, BLK_SIZE - start);
+
+        copy_from_kernel(thread, buf, &block_data[start], l);
+
+        buf += l;
+        p += l;
+        len -= l;
+        count += l;
+    }
+
+    return count;
 }

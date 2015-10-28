@@ -20,6 +20,8 @@ static FI file_table[MAX_FILE];
 static uint32_t stmap[MAX_FILE / 32];
 static uint32_t ftmap[MAX_FILE / 32];
 
+static char s_buf[MAX_PATH_LEN];
+
 static inline
 OFTE* get_free_sys_table()
 {
@@ -119,17 +121,37 @@ Request_key fs_read(const char *filename, uint8_t *buf, off_t offset, size_t len
 static
 FI *open_file(iNode *inode)
 {
-    return NULL;
+    FI *finfo;
+    int index = 0;
+    for (index = 0; index < MAX_FILE; ++index) {
+        uint32_t mask = 1U << (index % 32);
+        if (ftmap[index >> 5] & mask) {
+            finfo = &file_table[index];
+            if (finfo->type == Reg && finfo->c.inode.index == inode->index) {
+                finfo->_count++;
+                return finfo;
+            }
+        }
+    }
+
+    finfo = get_free_file_table();
+    finfo->type = Reg;
+    finfo->_count = 1;
+    finfo->c.inode = *inode;
+
+    return finfo;
 }
 
 int do_open(Thread *thread, const char* filename)
 {
     assert(thread->fm_struct);
 
+    strcpy_to_kernel(thread, s_buf, (char *)filename);
+
     int fd;
     for (fd = 0; fd < NR_FD; ++fd) {
         if (!thread->fm_struct->fd[fd]) {
-            iNode inode = path_to_inode(filename, thread);
+            iNode inode = path_to_inode(s_buf, thread);
             if (inode.index < 0) {
                 return -1;
             }
@@ -175,6 +197,25 @@ int do_close(Thread *thread, int fd)
     return 0;
 }
 
+int post_read(FMMessage *msg, int ret)
+{
+    if (ret < 0) {
+        return ret;
+    }
+
+    if (ret > 0) {
+        Thread *thread = find_tcb_by_pid(msg->req_pid);
+
+        if (thread->fm_struct->fd[msg->fd1]->file->type == Dev) {
+            return ret;
+        }
+
+        thread->fm_struct->fd[msg->fd1]->offset += ret;
+    }
+
+    return ret;
+}
+
 Request_key do_read(Thread *thread, int fd, uint8_t *buf, int len)
 {
     assert(thread->fm_struct);
@@ -187,14 +228,27 @@ Request_key do_read(Thread *thread, int fd, uint8_t *buf, int len)
     key.type = REQ_NULL;
 
     switch (file->type) {
-    case Reg:
+    case Reg: {
+        Message m;
+        FSYSMessage *msg = (FSYSMessage *)&m;
+        msg->header.type = MSG_FSYS_READ;
+        msg->req_pid = thread->pid;
+        msg->inode = &file->c.inode;
+        msg->buf = (uint8_t *)buf;
+        msg->offset = ste->offset;
+        msg->len = len;
+        send(FSYSD, &m);
+
+        key.type = REQ_FSYS;
+        key.key.fsys.req_pid = thread->pid;
         break;
+    }
     case Dev: {
-        dev_read(file->dev, thread->pid, 0, buf, len);
+        dev_read(file->c.dev, thread->pid, 0, buf, len);
         key.type = REQ_DEV;
         key.key.dev.req_pid = thread->pid;
-        key.key.dev.pid = file->dev->pid;
-        key.key.dev.dev_id = file->dev->dev_id;
+        key.key.dev.pid = file->c.dev->pid;
+        key.key.dev.dev_id = file->c.dev->dev_id;
         break;
     }
     }
@@ -217,11 +271,11 @@ Request_key do_write(Thread *thread, int fd, uint8_t *buf, int len)
     case Reg:
         break;
     case Dev: {
-        dev_write(file->dev, thread->pid, 0, buf, len);
+        dev_write(file->c.dev, thread->pid, 0, buf, len);
         key.type = REQ_DEV;
         key.key.dev.req_pid = thread->pid;
-        key.key.dev.pid = file->dev->pid;
-        key.key.dev.dev_id = file->dev->dev_id;
+        key.key.dev.pid = file->c.dev->pid;
+        key.key.dev.dev_id = file->c.dev->dev_id;
         break;
     }
     }
@@ -300,7 +354,7 @@ void init_fm_tty(Thread *thread, int tty)
 
     FI *file = get_free_file_table();
     file->type = Dev;
-    file->dev = dev;
+    file->c.dev = dev;
     file->_count = 3;
 
     int fd;
@@ -389,6 +443,24 @@ Request_key do_mkdir(Thread *thread, const char *path)
 
 }
 
+int post_rmdir(FMMessage *msg, int pwd)
+{
+    if (pwd < 0) {
+        // error
+        return pwd;
+    }
+
+    // evacuate
+    int i = 0;
+    for (; i < MAX_PROCESS; ++i) {
+        if (fms[i].pwd == pwd) {
+            fms[i].pwd = 0;
+        }
+    }
+
+    return 0;
+}
+
 Request_key do_rmdir(Thread *thread, const char *path)
 {
     Message m;
@@ -434,15 +506,4 @@ Request_key do_stat(Thread *thread, const char *path, struct stat *buf)
     key.type = REQ_FSYS;
     key.key.fsys.req_pid = thread->pid;
     return key;
-}
-
-// call by FSYSD when remove a directory successfully
-void pwd_evacuate(int pwd)
-{
-    int i = 0;
-    for (; i < MAX_PROCESS; ++i) {
-        if (fms[i].pwd == pwd) {
-            fms[i].pwd = 0;
-        }
-    }
 }

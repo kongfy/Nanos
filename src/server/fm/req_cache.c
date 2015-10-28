@@ -26,11 +26,12 @@ Request* get_free_buffer()
     return NULL;
 }
 
-void cache_request(Request_key key, FMMessage *msg)
+void cache_request(Request_key key, Message *msg, PTR_CALLBACK callback)
 {
     Request *request = get_free_buffer();
     request->key = key;
     request->msg = *msg;
+    request->callback = callback;
 }
 
 static inline
@@ -51,19 +52,22 @@ bool compare_key(Request_key *a, Request_key *b)
     return false;
 }
 
-void reply(Request_key key, uint32_t ret)
+void reply(Request_key key, int ret)
 {
     int index = 0;
     for (index = 0; index < MAX_REQ; ++index) {
         uint32_t mask = 1U << (index % 32);
         if (map[index >> 5] & mask) {
             if (compare_key(&key, &(buffer[index].key))) {
-                Message m;
-                FMMessage *msg = (FMMessage *)&m;
+                Message *m = &buffer[index].msg;
+                FMMessage *msg = (FMMessage *)m;
 
-                *msg = buffer[index].msg;
+                if (buffer[index].callback) {
+                    ret = buffer[index].callback(msg, ret);
+                }
+
                 msg->ret = ret;
-                send(m.src, &m);
+                send(m->src, m);
                 map[index >> 5] &= ~mask;
 
                 msg_count -= 1;

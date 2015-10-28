@@ -46,8 +46,10 @@ typedef enum FileType {
 typedef struct FileInfo
 {
     FileType type;
-    Device *dev;
-    iNode inode;
+    union {
+        Device *dev;
+        iNode inode;
+    } c; // c for content
     int _count;
 } FI;
 

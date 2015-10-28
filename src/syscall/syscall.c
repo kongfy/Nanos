@@ -49,6 +49,7 @@ uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arg3)
         return sys_sleep(arg1);
         break;
     case SYS_OPEN:
+        return sys_open((char *)arg1);
         break;
     case SYS_LSEEK:
         break;

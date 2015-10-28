@@ -71,6 +71,11 @@ void fsysd()
                 send(m.src, &m);
                 break;
             }
+            case MSG_FSYS_READ: {
+                msg->ret = fsys_read(msg->inode, msg->buf, msg->offset, msg->len, thread);
+                send(m.src, &m);
+                break;
+            }
             default:
                 assert(0);
             }

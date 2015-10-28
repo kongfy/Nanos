@@ -30,5 +30,6 @@ int fsys_mkdir(const char *path, Thread *thread);
 int fsys_rmdir(const char *path, Thread *thread);
 int fsys_unlink(const char *path, Thread *thread);
 int fsys_stat(const char *path, struct stat *buf, Thread *thread);
+int fsys_read(iNode *inode, uint8_t *buf, off_t offset, size_t len, Thread *thread);
 
 #endif /* FSYS_UTIL_H */

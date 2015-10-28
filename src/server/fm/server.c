@@ -56,7 +56,7 @@ void fm_server_thread()
                 // ONLY used by pm to read off ELF header from disk
                 Thread *user = msg->usr_pid ? find_tcb_by_pid(msg->usr_pid) : NULL;
                 Request_key key = fs_read(msg->filename, msg->dest_addr, msg->offset, msg->len, thread, user);
-                cache_request(key, msg);
+                cache_request(key, &m, NULL);
                 break;
             }
             case MSG_FM_WR:
@@ -78,44 +78,49 @@ void fm_server_thread()
                 send(m.src, &m);
                 break;
             }
+            case MSG_FM_OPEN: {
+                msg->ret = do_open(thread, msg->filename);
+                send(m.src, &m);
+                break;
+            }
             case MSG_FM_READ: {
                 Request_key key = do_read(thread, msg->fd1, (uint8_t *)msg->buf, msg->len);
-                cache_request(key, msg);
+                cache_request(key, &m, post_read);
                 break;
             }
             case MSG_FM_WRITE: {
                 Request_key key = do_write(thread, msg->fd1, (uint8_t *)msg->buf, msg->len);
-                cache_request(key, msg);
+                cache_request(key, &m, NULL);
                 break;
             }
             case MSG_FM_CHDIR: {
                 Request_key key = do_chdir(thread, msg->filename);
-                cache_request(key, msg);
+                cache_request(key, &m, NULL);
                 break;
             }
             case MSG_FM_LSDIR: {
                 Request_key key = do_lsdir(thread, msg->filename, (uint8_t *)msg->buf);
-                cache_request(key, msg);
+                cache_request(key, &m, NULL);
                 break;
             }
             case MSG_FM_MKDIR: {
                 Request_key key = do_mkdir(thread, msg->filename);
-                cache_request(key, msg);
+                cache_request(key, &m, NULL);
                 break;
             }
             case MSG_FM_RMDIR: {
                 Request_key key = do_rmdir(thread, msg->filename);
-                cache_request(key, msg);
+                cache_request(key, &m, post_rmdir);
                 break;
             }
             case MSG_FM_UNLINK: {
                 Request_key key = do_unlink(thread, msg->filename);
-                cache_request(key, msg);
+                cache_request(key, &m, NULL);
                 break;
             }
             case MSG_FM_STAT: {
                 Request_key key = do_stat(thread, msg->filename, (struct stat *)msg->buf);
-                cache_request(key, msg);
+                cache_request(key, &m, NULL);
                 break;
             }
             default: {

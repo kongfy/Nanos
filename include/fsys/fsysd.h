@@ -11,6 +11,7 @@
 #define MSG_FSYS_RMDIR 10
 #define MSG_FSYS_UNLINK 11
 #define MSG_FSYS_STAT 12
+#define MSG_FSYS_READ 13
 
 typedef struct FSYSMessage {
     MsgHead header;  // header与Message的头部定义保持一致即可(src, dst, type)

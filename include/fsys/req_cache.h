@@ -3,6 +3,8 @@
 
 #include "server/fm.h"
 
+typedef int (*PTR_CALLBACK)(FMMessage *msg, int ret);
+
 typedef enum Request_type {
     REQ_NULL = 0,
     REQ_FSYS = 1,
@@ -33,10 +35,11 @@ typedef struct Request
 {
     Request_key key;
     // value
-    FMMessage msg;
+    Message msg;
+    PTR_CALLBACK callback;
 } Request;
 
-void cache_request(Request_key key, FMMessage *msg);
-void reply(Request_key key, uint32_t ret);
+void cache_request(Request_key key, Message *msg, PTR_CALLBACK callback);
+void reply(Request_key key, int ret);
 
 #endif /* __FSYS_REQ_CACHE_H__ */
