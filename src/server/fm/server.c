@@ -83,6 +83,16 @@ void fm_server_thread()
                 send(m.src, &m);
                 break;
             }
+            case MSG_FM_CLOSE: {
+                msg->ret = do_close(thread, msg->fd1);
+                send(m.src, &m);
+                break;
+            }
+            case MSG_FM_LSEEK: {
+                msg->ret = do_lseek(thread, msg->fd1, msg->offset, msg->whence);
+                send(m.src, &m);
+                break;
+            }
             case MSG_FM_READ: {
                 Request_key key = do_read(thread, msg->fd1, (uint8_t *)msg->buf, msg->len);
                 cache_request(key, &m, post_read);

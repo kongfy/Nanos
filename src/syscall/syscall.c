@@ -52,8 +52,10 @@ uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arg3)
         return sys_open((char *)arg1);
         break;
     case SYS_LSEEK:
+        return sys_lseek(arg1, arg2, arg3);
         break;
     case SYS_CLOSE:
+        return sys_close(arg1);
         break;
     case SYS_DUP:
         break;

@@ -283,9 +283,39 @@ Request_key do_write(Thread *thread, int fd, uint8_t *buf, int len)
     return key;
 }
 
-int do_lseek(Thread *Thread, int fd, int offset, int whence)
+#define SEEK_SET 0
+#define SEEK_CUR 1
+#define SEEK_END 2
+
+int do_lseek(Thread *thread, int fd, int offset, int whence)
 {
-    return 0;
+    off_t t = 0;
+    OFTE *ste = thread->fm_struct->fd[fd];
+    size_t size = ste->file->c.inode.entry.size;
+
+    switch (whence) {
+    case SEEK_SET:
+        t = 0;
+        break;
+    case SEEK_CUR:
+        t = ste->offset;
+        break;
+    case SEEK_END:
+        t = size;
+        break;
+    default:
+        return -1;
+    }
+
+    t += offset;
+
+    if (!(t >= 0 && t <= size)) {
+        return -1;
+    }
+
+    ste->offset = t;
+
+    return t;
 }
 
 int do_dup(Thread *thread, int oldfd)
