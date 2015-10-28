@@ -100,7 +100,7 @@ void fm_server_thread()
             }
             case MSG_FM_WRITE: {
                 Request_key key = do_write(thread, msg->fd1, (uint8_t *)msg->buf, msg->len);
-                cache_request(key, &m, NULL);
+                cache_request(key, &m, post_write);
                 break;
             }
             case MSG_FM_CHDIR: {

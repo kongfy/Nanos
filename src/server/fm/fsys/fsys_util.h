@@ -20,6 +20,7 @@ int add_blk_to_inode(iNode_entry *inode);
 iNode inode_for_root();
 iNode fsys_path_to_inode(const char *path, iNode *pwd);
 iNode mkdir_to_parent(char *dirname, iNode *parent);
+iNode touch_to_parent(char *filename, iNode *parent);
 int rm_from_parent(iNode *inode, iNode *parent);
 
 // fsys.c
@@ -31,5 +32,7 @@ int fsys_rmdir(const char *path, Thread *thread);
 int fsys_unlink(const char *path, Thread *thread);
 int fsys_stat(const char *path, struct stat *buf, Thread *thread);
 int fsys_read(iNode *inode, uint8_t *buf, off_t offset, size_t len, Thread *thread);
+int fsys_write(iNode *inode, uint8_t *buf, off_t offset, size_t len, Thread *thread);
+int fsys_create(const char *path, Thread *thread);
 
 #endif /* FSYS_UTIL_H */

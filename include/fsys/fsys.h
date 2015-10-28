@@ -32,6 +32,7 @@ Request_key do_stat(Thread *thread, const char *path, struct stat *buf);
 
 // callbacks
 int post_read(FMMessage *msg, int ret);
+int post_write(FMMessage *msg, int ret);
 int post_rmdir(FMMessage *msg, int pwd);
 
 #endif /* __FSYS_FSYS_H__ */

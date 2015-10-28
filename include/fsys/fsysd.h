@@ -3,15 +3,17 @@
 
 #include "kernel.h"
 
-#define MSG_FSYS_READ_BY_FILENAME 5
+#define MSG_FSYS_READ_BY_FILENAME   5
 #define MSG_FSYS_INODE_FOR_FILENAME 6
-#define MSG_FSYS_CHDIR 7
-#define MSG_FSYS_LSDIR 8
-#define MSG_FSYS_MKDIR 9
-#define MSG_FSYS_RMDIR 10
-#define MSG_FSYS_UNLINK 11
-#define MSG_FSYS_STAT 12
-#define MSG_FSYS_READ 13
+#define MSG_FSYS_CHDIR              7
+#define MSG_FSYS_LSDIR              8
+#define MSG_FSYS_MKDIR              9
+#define MSG_FSYS_RMDIR             10
+#define MSG_FSYS_UNLINK            11
+#define MSG_FSYS_STAT              12
+#define MSG_FSYS_READ              13
+#define MSG_FSYS_WRITE             14
+#define MSG_FSYS_CREATE            15
 
 typedef struct FSYSMessage {
     MsgHead header;  // header与Message的头部定义保持一致即可(src, dst, type)

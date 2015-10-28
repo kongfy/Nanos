@@ -97,6 +97,23 @@ iNode path_to_inode(const char *filename, Thread *thread)
     return temp;
 }
 
+int create_at_path(const char *filename, Thread *thread)
+{
+    assert(current->pid == FM);
+
+    Message m;
+    FSYSMessage *msg = (FSYSMessage *)&m;
+    msg->header.type = MSG_FSYS_CREATE;
+    msg->req_pid = current->pid;
+    msg->filename = filename;
+    msg->pwd = thread->fm_struct->pwd;
+
+    send(FSYSD, &m);
+    receive_fsys_block(MSG_FSYS_INODE_FOR_FILENAME, &m);
+
+    return msg->ret;
+}
+
 // ONLY used by pm to read off ELF header from disk
 Request_key fs_read(const char *filename, uint8_t *buf, off_t offset, size_t len, Thread *thread, Thread *user)
 {
@@ -153,7 +170,14 @@ int do_open(Thread *thread, const char* filename)
         if (!thread->fm_struct->fd[fd]) {
             iNode inode = path_to_inode(s_buf, thread);
             if (inode.index < 0) {
-                return -1;
+                // not exsit, try to create
+                int ret = create_at_path(s_buf, thread);
+                if (ret == 0) {
+                    inode = path_to_inode(s_buf, thread);
+                    assert(inode.index >= 0);
+                } else {
+                    return ret;
+                }
             }
 
             FI *file = open_file(&inode);
@@ -256,6 +280,25 @@ Request_key do_read(Thread *thread, int fd, uint8_t *buf, int len)
     return key;
 }
 
+int post_write(FMMessage *msg, int ret)
+{
+    if (ret < 0) {
+        return ret;
+    }
+
+    if (ret > 0) {
+        Thread *thread = find_tcb_by_pid(msg->req_pid);
+
+        if (thread->fm_struct->fd[msg->fd1]->file->type == Dev) {
+            return ret;
+        }
+
+        thread->fm_struct->fd[msg->fd1]->offset += ret;
+    }
+
+    return ret;
+}
+
 Request_key do_write(Thread *thread, int fd, uint8_t *buf, int len)
 {
     assert(thread->fm_struct);
@@ -268,8 +311,21 @@ Request_key do_write(Thread *thread, int fd, uint8_t *buf, int len)
     key.type = REQ_NULL;
 
     switch (file->type) {
-    case Reg:
+    case Reg: {
+        Message m;
+        FSYSMessage *msg = (FSYSMessage *)&m;
+        msg->header.type = MSG_FSYS_WRITE;
+        msg->req_pid = thread->pid;
+        msg->inode = &file->c.inode;
+        msg->buf = (uint8_t *)buf;
+        msg->offset = ste->offset;
+        msg->len = len;
+        send(FSYSD, &m);
+
+        key.type = REQ_FSYS;
+        key.key.fsys.req_pid = thread->pid;
         break;
+    }
     case Dev: {
         dev_write(file->c.dev, thread->pid, 0, buf, len);
         key.type = REQ_DEV;

@@ -58,8 +58,10 @@ uint32_t do_syscall(int id, uint32_t arg1, uint32_t arg2, uint32_t arg3)
         return sys_close(arg1);
         break;
     case SYS_DUP:
+        return sys_dup(arg1);
         break;
     case SYS_DUP2:
+        return sys_dup2(arg1, arg2);
         break;
     case SYS_PIPE:
         break;

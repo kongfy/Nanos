@@ -342,6 +342,22 @@ iNode mkdir_to_parent(char *dirname, iNode *parent)
     return inode;
 }
 
+iNode touch_to_parent(char *filename, iNode *parent)
+{
+    assert(parent);
+    assert(parent->index >= 0);
+
+    iNode inode;
+    inode.index = get_free_inode();
+    memset(&inode.entry, 0, sizeof(iNode_entry));
+    inode.entry.type = PLAIN;
+
+    save_inode(&inode);
+    add_to_parent(parent, &inode, filename);
+
+    return inode;
+}
+
 int rm_from_parent(iNode *inode, iNode *parent)
 {
     assert(parent);

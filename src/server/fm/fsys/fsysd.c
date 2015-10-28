@@ -76,6 +76,16 @@ void fsysd()
                 send(m.src, &m);
                 break;
             }
+            case MSG_FSYS_WRITE: {
+                msg->ret = fsys_write(msg->inode, msg->buf, msg->offset, msg->len, thread);
+                send(m.src, &m);
+                break;
+            }
+            case MSG_FSYS_CREATE: {
+                msg->ret = fsys_create(msg->filename, thread);
+                send(m.src, &m);
+                break;
+            }
             default:
                 assert(0);
             }
