@@ -37,7 +37,17 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    int i;
+    int i = 0, j = 0;
+    for (i = 1; i < argc; ++i) {
+        if ('-' == argv[i][0]) {
+            int len = strlen(argv[i]);
+            for (j = 1; j < len; ++j) {
+                printf("touch: invalid option -- '%c'\n", argv[i][j]);
+                return 1;
+            }
+        }
+    }
+
     bool flag = false;
     for (i = 1; i < argc; ++i) {
         if ('-' != argv[i][0]) {

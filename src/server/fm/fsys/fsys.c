@@ -381,7 +381,7 @@ int fsys_write(iNode *inode, uint8_t *buf, off_t offset, size_t len, Thread *thr
     while (len > 0) {
         uint32_t blk = p / BLK_SIZE;
 
-        if (blk > inode->entry.blks) {
+        if (blk >= inode->entry.blks) {
             add_blk_to_inode(&inode->entry);
         }
 

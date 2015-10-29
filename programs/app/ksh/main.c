@@ -2,9 +2,10 @@
 #include "unistd.h"
 #include "string.h"
 #include "const.h"
+#include "stat.h"
 #include "ksh.h"
 
-char logo[] = {
+static char logo[] = {
   0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x5f, 0x20, 0x20, 0x5f, 0x20,
   0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x5f, 0x5f,
   0x5f, 0x20, 0x20, 0x5f, 0x5f, 0x5f, 0x20, 0x20, 0x20, 0x5f, 0x20, 0x20,
@@ -44,7 +45,7 @@ uint8_t buf[MAX_LEN];
 uint8_t path[MAX_LEN];
 
 // return argc
-int parse(uint8_t *buf, void *argv)
+int parse(uint8_t *buf, void *argv, char **redirect_in, char **redirect_out)
 {
     int argc = 0;
     char *p = (char *)buf;
@@ -63,11 +64,33 @@ int parse(uint8_t *buf, void *argv)
     }
 
     bool flag = false;
+    bool f_in = false;
+    bool f_out = false;
     while (*q != '\0') {
         if (!is_blank_char(*q)) {
-            if (!flag) {
-                *(t++) = q;
-                argc++;
+            if ('<' == *q) {
+                f_in = true;
+                *q = '\0';
+                flag = false;
+            } else if ('>' == *q) {
+                f_out = true;
+                *q = '\0';
+                flag = false;
+            } else if (!flag) {
+                if (!f_in && !f_out) {
+                    *(t++) = q;
+                    argc++;
+                } else {
+                    if (f_in) {
+                        *redirect_in = q;
+                        f_in = false;
+                    }
+
+                    if (f_out) {
+                        *redirect_out = q;
+                        f_out = false;
+                    }
+                }
                 flag = true;
             }
         } else {
@@ -106,6 +129,8 @@ char *path_extend(char *cmd)
 
 bool buildin(int argc,  char *argv[]);
 
+static struct stat stat_buf;
+
 int main(int argc, char *argv[])
 {
     printf(logo);
@@ -120,7 +145,8 @@ int main(int argc, char *argv[])
         int i;
         for (i = 0; i < MAXARG; ++i) argv[i] = NULL;
 
-        int argc = parse(buf, argv);
+        char *redirect_in = NULL, *redirect_out = NULL;
+        int argc = parse(buf, argv, &redirect_in, &redirect_out);
 
         if (!argc) continue;
         char *cmd = argv[0];
@@ -134,13 +160,61 @@ int main(int argc, char *argv[])
 
         pid_t pid = fork();
         if (pid == 0) {
-            int err = exec(cmd, argv);
-            if (err == -1) {
+            if (stat(cmd, &stat_buf)) {
                 printf("-ksh: %s: No such file or directory\n", cmd);
-            } else if (err == -2) {
-                printf("-ksh: %s: is a directory\n", cmd);
-            } else if (err == -500) {
+                return 1;
+            }
+
+            if (DIRECTORY == stat_buf.type) {
+                printf("-ksh: %s: Is a directory\n", cmd);
+                return 1;
+            }
+
+            // redirect standard input and output
+            if (redirect_in) {
+                if (stat(redirect_in, &stat_buf)) {
+                    printf("-ksh: %s: No such file or directory\n", redirect_in);
+                    return 1;
+                }
+
+                if (DIRECTORY == stat_buf.type) {
+                    printf("-ksh: %s: Is a directory\n", redirect_in);
+                    return 1;
+                }
+
+                close(STDIN_FILENO);
+                int fd = open(redirect_in);
+                lseek(fd, 0, SEEK_SET);
+            }
+
+            if (redirect_out) {
+                if (stat(redirect_out, &stat_buf)) {
+                    int fd = open(redirect_out);
+                    if (fd < 0) {
+                        if (-2 == fd) {
+                            printf("-ksh %s: No such file or directory\n", redirect_out);
+                        } else if (-3 == fd) {
+                            printf("-ksh %s: Invalid file name\n", redirect_out);
+                        }
+                    } else {
+                        close(fd);
+                    }
+                }
+
+                if (DIRECTORY == stat_buf.type) {
+                    printf("ksh: %s: Is a directory\n", redirect_out);
+                    return 1;
+                }
+
+                close(STDOUT_FILENO);
+                int fd = open(redirect_out);
+                lseek(fd, 0, SEEK_END);
+            }
+
+            int err = exec(cmd, argv);
+            if (err == -500) {
                 printf("-ksh: %s: Can not be excuted\n", cmd);
+                return 1;
             }
         } else {
             waitpid(pid);
