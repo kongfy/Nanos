@@ -104,12 +104,12 @@ int create_at_path(const char *filename, Thread *thread)
     Message m;
     FSYSMessage *msg = (FSYSMessage *)&m;
     msg->header.type = MSG_FSYS_CREATE;
-    msg->req_pid = current->pid;
+    msg->req_pid = thread->pid;
     msg->filename = filename;
     msg->pwd = thread->fm_struct->pwd;
 
     send(FSYSD, &m);
-    receive_fsys_block(MSG_FSYS_INODE_FOR_FILENAME, &m);
+    receive_fsys_block(MSG_FSYS_CREATE, &m);
 
     return msg->ret;
 }

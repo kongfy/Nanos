@@ -143,7 +143,7 @@ int fsys_create(const char *path, Thread *thread)
         parent = fsys_path_to_inode(s_buf, &pwd);
     }
 
-    if (parent.index < 0) {
+    if (parent.index < 0 || parent.entry.type != DIRECTORY) {
         return -2;
     }
 
@@ -194,7 +194,7 @@ int fsys_mkdir(const char *path, Thread *thread)
         parent = fsys_path_to_inode(s_buf, &pwd);
     }
 
-    if (parent.index < 0) {
+    if (parent.index < 0 || parent.entry.type != DIRECTORY) {
         return -2;
     }
 
